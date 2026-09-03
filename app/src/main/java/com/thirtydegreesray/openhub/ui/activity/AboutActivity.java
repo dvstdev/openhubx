@@ -86,13 +86,11 @@ public class AboutActivity extends MaterialAboutActivity {
         appBuilder.title(R.string.author);
         appBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text(R.string.author_name)
-                .subText(R.string.author_location)
                 .icon(R.drawable.ic_menu_person)
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        ProfileActivity.show(AboutActivity.this, getString(R.string.author_login_id),
-                                getString(R.string.author_avatar_url));
+                        ProfileActivity.show(AboutActivity.this, getString(R.string.author_login_id));
                     }
                 })
                 .build());
@@ -102,8 +100,7 @@ public class AboutActivity extends MaterialAboutActivity {
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        ProfileActivity.show(AboutActivity.this, getString(R.string.author_login_id),
-                                getString(R.string.author_avatar_url));
+                        ProfileActivity.show(AboutActivity.this, getString(R.string.author_login_id));
                     }
                 })
                 .build());
