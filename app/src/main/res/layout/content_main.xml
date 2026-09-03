@@ -57,8 +57,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView android:id="@+id/cell_bookmarks" style="@style/BnCard.Cell"
-                    android:text="@string/bn_bookmarks"/>
                 <TextView android:id="@+id/cell_my_repos" style="@style/BnCard.Cell"
                     android:text="@string/bn_my_repos"/>
                 <TextView android:id="@+id/cell_issues" style="@style/BnCard.Cell"

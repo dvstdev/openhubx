@@ -34,6 +34,10 @@ public class BookmarkPresenter extends BasePresenter<IBookmarkContract.View>
         super(daoSession);
     }
 
+    public DaoSession getDaoSession() {
+        return daoSession;
+    }
+
     @Override
     public void onViewInitialized() {
         super.onViewInitialized();
