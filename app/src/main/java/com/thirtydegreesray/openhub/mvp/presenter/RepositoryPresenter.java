@@ -325,6 +325,12 @@ public class RepositoryPresenter extends BasePresenter<IRepositoryContract.View>
             bookmarkModel.setRepoId((long) repository.getId());
             bookmarkModel.setMarkTime(new Date());
             daoSession.getBookmarkDao().insert(bookmarkModel);
+            // Persist the companion LocalRepo so BookmarkPresenter can rehydrate this
+            // row even if the repo was never opened (trace path). Without this the
+            // bookmark row is orphaned and used to crash the whole bookmark list.
+            if(repository.getOwner() != null){
+                daoSession.getLocalRepoDao().insertOrReplace(repository.toLocalRepo());
+            }
         } else if(!bookmark && bookmarkModel != null){
             daoSession.getBookmarkDao().delete(bookmarkModel);
         }

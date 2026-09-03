@@ -52,15 +52,14 @@ public class BookmarkPresenter extends BasePresenter<IBookmarkContract.View>
                             .limit(page * 30)
                             .list();
                     for(Bookmark bookmark : bookmarkList){
-                        BookmarkExt ext = BookmarkExt.generate(bookmark);
-                        if("user".equals(bookmark.getType())){
-                            LocalUser localUser = daoSession.getLocalUserDao().load(ext.getUserId());
-                            ext.setUser(User.generateFromLocalUser(localUser));
-                        }else{
-                            LocalRepo localRepo = daoSession.getLocalRepoDao().load(ext.getRepoId());
-                            ext.setRepository(Repository.generateFromLocalRepo(localRepo));
+                        BookmarkExt ext = "user".equals(bookmark.getType())
+                                ? rehydrate(bookmark, daoSession.getLocalUserDao().load(bookmark.getUserId()), null)
+                                : rehydrate(bookmark, null, daoSession.getLocalRepoDao().load(bookmark.getRepoId()));
+                        // Skip orphaned bookmarks (missing LOCAL_* companion) rather than
+                        // NPEing and blanking the whole list.
+                        if(ext != null){
+                            tempBookmarks.add(ext);
                         }
-                        tempBookmarks.add(ext);
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -72,8 +71,35 @@ public class BookmarkPresenter extends BasePresenter<IBookmarkContract.View>
                     }
                     mView.showBookmarks(bookmarks);
                     mView.hideLoading();
+                }, throwable -> {
+                    // Never let an unexpected DB error blank the list silently: recover
+                    // the UI with whatever loaded rather than leaving it stuck on loading.
+                    if(bookmarks == null || page == 1){
+                        bookmarks = tempBookmarks;
+                    } else {
+                        bookmarks.addAll(tempBookmarks);
+                    }
+                    mView.showBookmarks(bookmarks);
+                    mView.hideLoading();
                 });
 
+    }
+
+    /**
+     * Rehydrates a bookmark row into a display model, or returns null when its
+     * companion LOCAL_USER / LOCAL_REPO row is missing (orphaned bookmark) so the
+     * caller skips it instead of crashing the whole list.
+     */
+    static BookmarkExt rehydrate(Bookmark bookmark, LocalUser localUser, LocalRepo localRepo){
+        BookmarkExt ext = BookmarkExt.generate(bookmark);
+        if("user".equals(bookmark.getType())){
+            if(localUser == null) return null;
+            ext.setUser(User.generateFromLocalUser(localUser));
+        }else{
+            if(localRepo == null) return null;
+            ext.setRepository(Repository.generateFromLocalRepo(localRepo));
+        }
+        return ext;
     }
 
     @Override

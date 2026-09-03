@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.novoda.build-properties'
 
-buildProperties {
-    getPublic {
-        file rootProject.file('public.properties')
-    }
-    getLocal {
-        file rootProject.file('local.properties')
-    }
-}
+// Replaces the discontinued com.novoda.build-properties plugin (was jcenter-only).
+// Loads public.properties as the base and local.properties as an optional override,
+// mirroring the plugin's "local wins, else public" lookup.
+def buildProps = new Properties()
+def publicPropsFile = rootProject.file('public.properties')
+if (publicPropsFile.exists()) { publicPropsFile.withInputStream { buildProps.load(it) } }
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) { localPropsFile.withInputStream { buildProps.load(it) } }
+def buildConfigProp = { String key -> (buildProps.getProperty(key) ?: '""').trim() }
+def signingProp = { String key, String fallback -> (buildProps.getProperty(key) ?: fallback).trim() }
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION as int
@@ -23,10 +24,10 @@ android {
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled false
 
-        buildConfigField "String", "OPENHUB_CLIENT_ID", (buildProperties.getLocal['openhub_client_id'] | buildProperties.getPublic['openhub_client_id']).string
-        buildConfigField "String", "OPENHUB_CLIENT_SECRET", (buildProperties.getLocal['openhub_client_secret'] | buildProperties.getPublic['openhub_client_secret']).string
-        buildConfigField "String", "BUGLY_ID", (buildProperties.getLocal['bugly_appid'] | buildProperties.getPublic['bugly_appid']).string
-        buildConfigField "String", "DEBUG_BUGLY_ID", (buildProperties.getLocal['debug_bugly_appid'] | buildProperties.getPublic['debug_bugly_appid']).string
+        buildConfigField "String", "OPENHUB_CLIENT_ID", buildConfigProp('openhub_client_id')
+        buildConfigField "String", "OPENHUB_CLIENT_SECRET", buildConfigProp('openhub_client_secret')
+        buildConfigField "String", "BUGLY_ID", buildConfigProp('bugly_appid')
+        buildConfigField "String", "DEBUG_BUGLY_ID", buildConfigProp('debug_bugly_appid')
 
         ndk {
 //            abiFilters 'armeabi', 'armeabi-v7a', 'x86'
@@ -36,10 +37,10 @@ android {
 
     signingConfigs  {
         release {
-            storeFile(file((buildProperties.getLocal['sign_path'] | buildProperties.getPublic['sign_path']).string))
-            storePassword((buildProperties.getLocal['store_password'] | buildProperties.getPublic['store_password']).string)
-            keyAlias((buildProperties.getLocal['key_alias'] | buildProperties.getPublic['key_alias']).string)
-            keyPassword((buildProperties.getLocal['key_password'] | buildProperties.getPublic['key_password']).string)
+            storeFile(file(signingProp('sign_path', 'OpenHubPublicSign.jks')))
+            storePassword(signingProp('store_password', 'OpenHub'))
+            keyAlias(signingProp('key_alias', 'Public'))
+            keyPassword(signingProp('key_password', 'OpenHub'))
         }
     }
 
@@ -147,6 +148,10 @@ dependencies {
     //dagger依赖注入
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     annotationProcessor "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+
+    // JDK 9+ removed javax.annotation.Generated; Dagger/Glide generated code references it.
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+    annotationProcessor 'javax.annotation:javax.annotation-api:1.3.2'
 
     implementation "com.tbruyelle.rxpermissions:rxpermissions:${RX_PERMISSION_VERSION}"
 

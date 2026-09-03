@@ -164,6 +164,9 @@ public class ProfilePresenter extends BasePresenter<IProfileContract.View>
             bookmarkModel.setUserId(user.getLogin());
             bookmarkModel.setMarkTime(new Date());
             daoSession.getBookmarkDao().insert(bookmarkModel);
+            // Persist the companion LocalUser so BookmarkPresenter can rehydrate this
+            // row even if the profile was never opened. Prevents the orphaned-row crash.
+            daoSession.getLocalUserDao().insertOrReplace(user.toLocalUser());
         } else if(!bookmark && bookmarkModel != null){
             daoSession.getBookmarkDao().delete(bookmarkModel);
         }

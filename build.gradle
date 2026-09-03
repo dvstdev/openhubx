@@ -1,18 +1,23 @@
 
 buildscript {
     repositories {
-        jcenter()
         google()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.0'
-        classpath 'com.novoda:gradle-build-properties-plugin:0.3'
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
+        // Aliyun public mirror still serves several jcenter-only artifacts that were
+        // orphaned when jcenter shut down (dataautoaccess(+compiler), submitbutton,
+        // richtext, glideimagegetter, rxpermissions 0.9.4).
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://jitpack.io' }
     }
 }
 
