@@ -52,6 +52,7 @@ public class PrefUtils {
     public final static String CACHE_FIRST_ENABLE = "cacheFirstEnable";
     public final static String SYSTEM_DOWNLOADER = "systemDownloader";
     public final static String LANGUAGE = "language";
+    public final static String FONT_SCALE = "fontScale";
     public final static String LOGOUT = "logout";
     public final static String CODE_WRAP = "codeWrap";
     public final static String CUSTOM_TABS_ENABLE = "customTabsEnable";
@@ -115,6 +116,15 @@ public class PrefUtils {
 
     public static String getLanguage(){
         return getDefaultSp(AppApplication.get()).getString(LANGUAGE, "en");
+    }
+
+    public static float getFontScale(){
+        try {
+            return Float.parseFloat(getDefaultSp(AppApplication.get())
+                    .getString(FONT_SCALE, "1.0"));
+        } catch (NumberFormatException e){
+            return 1.0f;
+        }
     }
 
     public static String getStartPage(){

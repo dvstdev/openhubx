@@ -16,6 +16,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.inject.Inject;
 
@@ -75,9 +76,7 @@ public class TopicsPresenter extends BasePresenter<ITopicsContract.View>
                     ArrayList<Topic> topics = new ArrayList<>();
                     try {
                         Document doc = Jsoup.parse(s, AppConfig.GITHUB_BASE_URL);
-                        //top three topics
-                        topics.addAll(getTopTopics(doc));
-                        topics.addAll(getFeaturedTopics(doc));
+                        topics.addAll(getTopics(doc));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -100,54 +99,31 @@ public class TopicsPresenter extends BasePresenter<ITopicsContract.View>
                 });
     }
 
-    private ArrayList<Topic> getTopTopics(Document doc) throws Exception{
-        ArrayList<Topic> topTopics = new ArrayList<>();
-        Elements elements = doc.getElementsByClass("col-12 col-sm-6 col-md-4 mb-4");
-        for (Element element : elements) {
-            Element idElement = element.select("a").first();
-            Element imageElement = element.select("a > img").first();
-            Element titleElement = element.select("a > p").get(0);
-            Element descElement = element.select("a > p").get(1);
-
-            String id = idElement.attr("href");
-            id = id.substring(id.lastIndexOf("/") + 1);
-            String name = titleElement.textNodes().get(0).text();
-            String desc = descElement.textNodes().get(0).text();
-            String image = imageElement == null ? null : imageElement.attr("src");
-
-            Topic topic = new Topic()
-                    .setId(id)
-                    .setName(name)
-                    .setDesc(desc)
-                    .setImage(image);
-            topTopics.add(topic);
+    private ArrayList<Topic> getTopics(Document doc) {
+        ArrayList<Topic> list = new ArrayList<>();
+        HashSet<String> seen = new HashSet<>();
+        // Key on the stable /topics/{id} link + its title/desc <p> tags instead of
+        // GitHub's churny utility classes.
+        Elements anchors = doc.select("a[href^=/topics/]");
+        for (Element a : anchors) {
+            Elements ps = a.select("p");
+            if (ps.size() == 0) continue; // skip the image-only anchor and nav links
+            String href = a.attr("href");
+            String id = href.substring(href.lastIndexOf("/") + 1);
+            if (id.isEmpty() || seen.contains(id)) continue;
+            String name = ps.get(0).text().trim();
+            if (name.isEmpty()) continue;
+            String desc = ps.size() > 1 ? ps.get(1).text().trim() : "";
+            String image = null;
+            Element parent = a.parent();
+            if (parent != null) {
+                Element img = parent.select("a[href^=/topics/] > img").first();
+                if (img != null) image = img.attr("src");
+            }
+            seen.add(id);
+            list.add(new Topic().setId(id).setName(name).setDesc(desc).setImage(image));
         }
-        return topTopics;
-    }
-
-    private ArrayList<Topic> getFeaturedTopics(Document doc) throws Exception{
-        ArrayList<Topic> topTopics = new ArrayList<>();
-        Elements topElements = doc.getElementsByClass("py-4 border-bottom");
-        for (Element element : topElements) {
-            Element idElement = element.select("a").first();
-            Element imageElement = element.select("a > img").first();
-            Element titleElement = element.select("div > a > div > p").get(0);
-            Element descElement = element.select("div > a > div > p").get(1);
-
-            String id = idElement.attr("href");
-            id = id.substring(id.lastIndexOf("/") + 1);
-            String name = titleElement.textNodes().get(0).text();
-            String desc = descElement.textNodes().get(0).text();
-            String image = imageElement == null ? null : imageElement.attr("src");
-
-            Topic topic = new Topic()
-                    .setId(id)
-                    .setName(name)
-                    .setDesc(desc)
-                    .setImage(image);
-            topTopics.add(topic);
-        }
-        return topTopics;
+        return list;
     }
 
 

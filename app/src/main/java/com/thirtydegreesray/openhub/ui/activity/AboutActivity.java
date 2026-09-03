@@ -76,7 +76,7 @@ public class AboutActivity extends MaterialAboutActivity {
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        RepositoryActivity.show(context, getString(R.string.author_login_id), getString(R.string.app_github_name));
+                        AppOpener.openInCustomTabsOrBrowser(context, getString(R.string.source_code_url));
                     }
                 })
                 .build());
@@ -100,7 +100,8 @@ public class AboutActivity extends MaterialAboutActivity {
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        ProfileActivity.show(AboutActivity.this, getString(R.string.author_login_id));
+                        AppOpener.openInCustomTabsOrBrowser(context,
+                                "https://github.com/" + getString(R.string.author_login_id));
                     }
                 })
                 .build());

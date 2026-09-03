@@ -70,6 +70,7 @@ public class AppUtils {
         Locale.setDefault(locale);
         Configuration configuration = context.getResources().getConfiguration();
         configuration.setLocale(locale);
+        configuration.fontScale = PrefUtils.getFontScale();
         context.createConfigurationContext(configuration);
     }
 
@@ -80,6 +81,7 @@ public class AppUtils {
         Resources resources = context.getResources();
         Configuration configuration = resources.getConfiguration();
         configuration.locale = locale;
+        configuration.fontScale = PrefUtils.getFontScale();
         resources.updateConfiguration(configuration, resources.getDisplayMetrics());
     }
 

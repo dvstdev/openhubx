@@ -65,6 +65,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
 //        findPreference(PrefUtils.LOGOUT).setOnPreferenceClickListener(this);
         findPreference(PrefUtils.START_PAGE).setOnPreferenceClickListener(this);
         findPreference(PrefUtils.START_PAGE).setSummary(nameList.get(getStartPageIndex()));
+        findPreference(PrefUtils.FONT_SCALE).setOnPreferenceClickListener(this);
+        findPreference(PrefUtils.FONT_SCALE).setSummary(getFontSizeName());
         ((ColorChooserPreference) findPreference(PrefUtils.ACCENT_COLOR))
                 .setColorChooserCallback(this);
     }
@@ -88,6 +90,9 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 return true;
             case PrefUtils.START_PAGE:
                 showChooseStartPageDialog();
+                return true;
+            case PrefUtils.FONT_SCALE:
+                showFontSizeDialog();
                 return true;
         }
         return false;
@@ -161,6 +166,32 @@ public class SettingsFragment extends PreferenceFragmentCompat
     private int getStartPageIndex(){
         String startPage = PrefUtils.getStartPage();
         return idList.indexOf(startPage);
+    }
+
+    private void showFontSizeDialog(){
+        final List<String> valueList =
+                Arrays.asList(getResources().getStringArray(R.array.font_size_value));
+        int index = valueList.indexOf(String.valueOf(PrefUtils.getFontScale()));
+        new AlertDialog.Builder(getContext())
+                .setCancelable(true)
+                .setTitle(R.string.font_size)
+                .setSingleChoiceItems(R.array.font_size_name, index, (dialog, which) -> {
+                    dialog.dismiss();
+                    PrefUtils.set(PrefUtils.FONT_SCALE, valueList.get(which));
+                    findPreference(PrefUtils.FONT_SCALE).setSummary(
+                            getResources().getStringArray(R.array.font_size_name)[which]);
+                    recreateMain();
+                })
+                .setNegativeButton(R.string.cancel, (dialog, which) -> {})
+                .show();
+    }
+
+    private String getFontSizeName(){
+        List<String> valueList =
+                Arrays.asList(getResources().getStringArray(R.array.font_size_value));
+        int index = valueList.indexOf(String.valueOf(PrefUtils.getFontScale()));
+        if(index < 0) index = 1;
+        return getResources().getStringArray(R.array.font_size_name)[index];
     }
 
 }

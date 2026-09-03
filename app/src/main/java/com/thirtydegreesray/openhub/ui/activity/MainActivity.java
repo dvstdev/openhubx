@@ -14,6 +14,7 @@ import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -36,6 +37,8 @@ import com.thirtydegreesray.openhub.ui.fragment.ActivityFragment;
 import com.thirtydegreesray.openhub.ui.fragment.BookmarksFragment;
 import com.thirtydegreesray.openhub.ui.fragment.CollectionsFragment;
 import com.thirtydegreesray.openhub.ui.fragment.RepositoriesFragment;
+import com.thirtydegreesray.openhub.ui.fragment.NotificationsFragment;
+import com.thirtydegreesray.openhub.mvp.model.filter.TrendingSince;
 import com.thirtydegreesray.openhub.ui.fragment.TopicsFragment;
 import com.thirtydegreesray.openhub.ui.fragment.TraceFragment;
 import com.thirtydegreesray.openhub.ui.fragment.base.BaseFragment;
@@ -59,6 +62,17 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
 
     private AppCompatImageView toggleAccountBn;
 
+    private View cardProfile;
+    private View cardDiscover;
+    private View cardMore;
+    private View bnBar;
+    private ImageView bnSearch;
+    private ImageView bnProfile;
+    private ImageView bnDiscover;
+    private ImageView bnMore;
+    private static final int BN_IDLE = 0xFFFFFFFF;
+    private static final int BN_ACTIVE = 0xFFFFCA28;
+
     private final Map<Integer, String> TAG_MAP = new HashMap<>();
 
     private final int SETTINGS_REQUEST_CODE = 100;
@@ -68,7 +82,8 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
 
     private final List<Integer> FRAGMENT_NAV_ID_LIST = Arrays.asList(
             R.id.nav_news, R.id.nav_owned, R.id.nav_starred, R.id.nav_bookmarks,
-            R.id.nav_trace, R.id.nav_public_news, R.id.nav_collections, R.id.nav_topics
+            R.id.nav_trace, R.id.nav_public_news, R.id.nav_collections, R.id.nav_topics,
+            R.id.nav_bn_trending, R.id.nav_bn_notifications
     );
 
     private final List<String> FRAGMENT_TAG_LIST = Arrays.asList(
@@ -79,12 +94,15 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
             TraceFragment.class.getSimpleName(),
             ActivityFragment.ActivityType.PublicNews.name(),
             CollectionsFragment.class.getSimpleName(),
-            TopicsFragment.class.getSimpleName()
+            TopicsFragment.class.getSimpleName(),
+            "TRENDING_TAB",
+            "NOTIFICATIONS_TAB"
     );
 
     private final List<Integer> FRAGMENT_TITLE_LIST = Arrays.asList(
             R.string.news, R.string.my_repos, R.string.starred_repos, R.string.bookmarks,
-            R.string.trace, R.string.public_news, R.string.repo_collections, R.string.topics
+            R.string.trace, R.string.bn_now, R.string.repo_collections, R.string.topics,
+            R.string.trending_repos, R.string.notifications
     );
 
     {
@@ -139,31 +157,20 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
     protected void initView(Bundle savedInstanceState) {
         super.initView(savedInstanceState);
 
-        setToolbarScrollAble(true);
+        setToolbarScrollAble(false);
         updateStartDrawerContent(R.menu.activity_main_drawer);
         removeEndDrawer();
-        if (mPresenter.isFirstUseAndNoNewsUser()) {
-            selectedPage = R.id.nav_public_news;
-            updateFragmentByNavId(selectedPage);
-        } else if(selectedPage != 0){
+        if (selectedPage != 0) {
             updateFragmentByNavId(selectedPage);
         } else {
-            String startPageId = PrefUtils.getStartPage();
-            int startPageIndex = Arrays.asList(getResources().getStringArray(R.array.start_pages_id))
-                    .indexOf(startPageId);
-            TypedArray typedArray = getResources().obtainTypedArray(R.array.start_pages_nav_id);
-            int startPageNavId = typedArray.getResourceId(startPageIndex, 0);
-            typedArray.recycle();
-            if(FRAGMENT_NAV_ID_LIST.contains(startPageNavId)){
-                selectedPage = startPageNavId;
-                updateFragmentByNavId(selectedPage);
-            } else {
-                selectedPage = R.id.nav_news;
-                updateFragmentByNavId(selectedPage);
-                updateFragmentByNavId(startPageNavId);
-            }
+            // Default landing page after login is Trending (Discover tab).
+            selectedPage = R.id.nav_bn_trending;
+            updateFragmentByNavId(selectedPage);
         }
-        navViewStart.setCheckedItem(selectedPage);
+        if (FRAGMENT_NAV_ID_LIST.contains(selectedPage)
+                && navViewStart.getMenu().findItem(selectedPage) != null) {
+            navViewStart.setCheckedItem(selectedPage);
+        }
 
         ImageView avatar = navViewStart.getHeaderView(0).findViewById(R.id.avatar);
         TextView name = navViewStart.getHeaderView(0).findViewById(R.id.name);
@@ -185,6 +192,159 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
         mail.setText(StringUtils.isBlank(loginUser.getBio()) ? joinTime : loginUser.getBio());
 
         tabLayout.setVisibility(View.GONE);
+        setupBottomBar();
+    }
+
+    private void setupBottomBar() {
+        cardProfile = findViewById(R.id.card_profile);
+        cardDiscover = findViewById(R.id.card_discover);
+        cardMore = findViewById(R.id.card_more);
+        bnBar = findViewById(R.id.bn_bar);
+        bnSearch = (ImageView) findViewById(R.id.bn_search);
+        bnProfile = (ImageView) findViewById(R.id.bn_profile);
+        bnDiscover = (ImageView) findViewById(R.id.bn_discover);
+        bnMore = (ImageView) findViewById(R.id.bn_more);
+
+        // Search goes straight to the search screen; the other three toggle their card.
+        bnSearch.setOnClickListener(v -> {
+            hideAllCards();
+            updateActiveIcon(selectedPage);
+            SearchActivity.show(getActivity());
+        });
+        bnProfile.setOnClickListener(v -> openTab(cardProfile, R.id.nav_owned));
+        bnDiscover.setOnClickListener(v -> openTab(cardDiscover, R.id.nav_bn_trending));
+        bnMore.setOnClickListener(v -> toggleCard(cardMore));
+
+        // Profile card cells
+        findViewById(R.id.cell_trace).setOnClickListener(v -> {
+            hideAllCards();
+            updateActiveIcon(selectedPage);
+            TraceActivity.show(getActivity());
+        });
+        findViewById(R.id.cell_notifications).setOnClickListener(v -> selectContent(R.id.nav_bn_notifications));
+        findViewById(R.id.cell_bookmarks).setOnClickListener(v -> selectContent(R.id.nav_bookmarks));
+        findViewById(R.id.cell_my_repos).setOnClickListener(v -> selectContent(R.id.nav_owned));
+        findViewById(R.id.cell_issues).setOnClickListener(v -> {
+            hideAllCards();
+            updateActiveIcon(selectedPage);
+            IssuesActivity.showForUser(getActivity());
+        });
+        findViewById(R.id.cell_starred).setOnClickListener(v -> selectContent(R.id.nav_starred));
+
+        // Discover card cells
+        findViewById(R.id.cell_random).setOnClickListener(v -> selectContent(R.id.nav_public_news));
+        findViewById(R.id.cell_trending).setOnClickListener(v -> selectContent(R.id.nav_bn_trending));
+        findViewById(R.id.cell_topics).setOnClickListener(v -> selectContent(R.id.nav_topics));
+        findViewById(R.id.cell_following).setOnClickListener(v -> selectContent(R.id.nav_news));
+
+        // More card cells -> launch existing activities
+        findViewById(R.id.cell_settings).setOnClickListener(v -> {
+            hideAllCards();
+            updateActiveIcon(selectedPage);
+            SettingsActivity.show(getActivity(), SETTINGS_REQUEST_CODE);
+        });
+        findViewById(R.id.cell_about).setOnClickListener(v -> {
+            hideAllCards();
+            updateActiveIcon(selectedPage);
+            AboutActivity.show(getActivity());
+        });
+
+        updateActiveIcon(selectedPage);
+    }
+
+    private void toggleCard(View card) {
+        boolean show = card.getVisibility() != View.VISIBLE;
+        hideAllCards();
+        card.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void hideAllCards() {
+        if (cardProfile != null) cardProfile.setVisibility(View.GONE);
+        if (cardDiscover != null) cardDiscover.setVisibility(View.GONE);
+        if (cardMore != null) cardMore.setVisibility(View.GONE);
+    }
+
+    private boolean isAnyCardVisible() {
+        return (cardProfile != null && cardProfile.getVisibility() == View.VISIBLE)
+                || (cardDiscover != null && cardDiscover.getVisibility() == View.VISIBLE)
+                || (cardMore != null && cardMore.getVisibility() == View.VISIBLE);
+    }
+
+    private void selectContent(int navId) {
+        hideAllCards();
+        navigate(navId);
+    }
+
+    private void navigate(int navId) {
+        updateTitle(navId);
+        loadFragment(navId);
+        updateFilter(navId);
+        updateActiveIcon(navId);
+    }
+
+    private void openTab(View card, int defaultNavId) {
+        boolean wasVisible = card.getVisibility() == View.VISIBLE;
+        hideAllCards();
+        if (!wasVisible) {
+            card.setVisibility(View.VISIBLE);
+            navigate(defaultNavId);
+        }
+    }
+
+    private void updateActiveIcon(int navId) {
+        if (bnProfile == null) return;
+        bnSearch.setColorFilter(BN_IDLE);
+        bnMore.setColorFilter(BN_IDLE);
+        bnProfile.setColorFilter(isProfileNav(navId) ? BN_ACTIVE : BN_IDLE);
+        bnDiscover.setColorFilter(isDiscoverNav(navId) ? BN_ACTIVE : BN_IDLE);
+    }
+
+    private boolean isProfileNav(int navId) {
+        return navId == R.id.nav_owned || navId == R.id.nav_starred
+                || navId == R.id.nav_bookmarks || navId == R.id.nav_bn_notifications;
+    }
+
+    private boolean isDiscoverNav(int navId) {
+        return navId == R.id.nav_public_news || navId == R.id.nav_bn_trending
+                || navId == R.id.nav_topics || navId == R.id.nav_news;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isAnyCardVisible()) {
+            hideAllCards();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        // Touching/scrolling outside an open card (and outside the bar) dismisses it.
+        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN && isAnyCardVisible()) {
+            View card = visibleCard();
+            if (!isTouchInside(card, ev) && !isTouchInside(bnBar, ev)) {
+                hideAllCards();
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    private View visibleCard() {
+        if (cardProfile != null && cardProfile.getVisibility() == View.VISIBLE) return cardProfile;
+        if (cardDiscover != null && cardDiscover.getVisibility() == View.VISIBLE) return cardDiscover;
+        if (cardMore != null && cardMore.getVisibility() == View.VISIBLE) return cardMore;
+        return null;
+    }
+
+    private boolean isTouchInside(View v, MotionEvent ev) {
+        if (v == null || v.getVisibility() != View.VISIBLE) return false;
+        int[] loc = new int[2];
+        v.getLocationOnScreen(loc);
+        float x = ev.getRawX();
+        float y = ev.getRawY();
+        return x >= loc[0] && x <= loc[0] + v.getWidth()
+                && y >= loc[1] && y <= loc[1] + v.getHeight();
     }
 
     @Override
@@ -325,6 +485,10 @@ public class MainActivity extends BaseDrawerActivity<MainPresenter>
                 return CollectionsFragment.create();
             case R.id.nav_topics:
                 return TopicsFragment.create();
+            case R.id.nav_bn_trending:
+                return RepositoriesFragment.createForTrending(TrendingSince.Daily);
+            case R.id.nav_bn_notifications:
+                return NotificationsFragment.create(NotificationsFragment.NotificationsType.All);
         }
         return null;
     }

@@ -55,7 +55,7 @@
                 android:paddingStart="@dimen/spacing_normal"
                 android:paddingEnd="@dimen/spacing_normal"
                 android:paddingBottom="@dimen/spacing_normal"
-                android:layout_marginTop="86dp">
+                android:layout_marginTop="112dp">
 
                 <TextView
                     android:id="@+id/desc"

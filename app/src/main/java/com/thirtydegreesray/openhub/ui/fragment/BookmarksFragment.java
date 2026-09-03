@@ -65,6 +65,16 @@ public class BookmarksFragment extends ListFragment<BookmarkPresenter, Bookmarks
     }
 
     @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        // MainActivity switches tabs via FragmentManager show/hide (no onResume),
+        // so reload on show to reflect bookmarks added from other screens.
+        if (!hidden && mPresenter != null) {
+            mPresenter.loadBookmarks(1);
+        }
+    }
+
+    @Override
     protected String getEmptyTip() {
         return getString(R.string.no_bookmarks);
     }

@@ -144,7 +144,8 @@ public class RepositoriesPresenter extends BasePagerPresenter<IRepositoriesContr
             return;
         }
         if(RepositoriesFragment.RepositoriesType.TRENDING.equals(type)){
-            loadTrending(isReLoad);
+            if(page == 1 || searchModel == null) buildTrendingSearchModel();
+            searchRepos(page);
             return;
         }
         mView.showLoading();
@@ -434,27 +435,32 @@ public class RepositoriesPresenter extends BasePagerPresenter<IRepositoriesContr
     }
 
     private void loadTrending(boolean isReload){
-        mView.showLoading();
-        HttpObserver<ResponseBody> httpObserver = new HttpObserver<ResponseBody>() {
-            @Override
-            public void onError(Throwable error) {
-                mView.hideLoading();
-                mView.showLoadError(getErrorTip(error));
-            }
+        buildTrendingSearchModel();
+        searchRepos(1);
+    }
 
-            @Override
-            public void onSuccess(HttpResponse<ResponseBody> response) {
-                try {
-                    parseTrendingPageData(response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+    /**
+     * The old trending source (github.com/trending HTML scrape) broke when GitHub
+     * redesigned the page. Approximate trending with the official Search API:
+     * most-starred repos created within the selected window, optionally by language.
+     */
+    private void buildTrendingSearchModel(){
+        String query = "created:>" + getTrendingSinceDate();
+        if(language != null && !StringUtils.isBlank(language.getSlug())
+                && !"all".equals(language.getSlug())){
+            query += "+language:" + language.getSlug();
+        }
+        searchModel = new SearchModel(SearchModel.SearchType.Repository)
+                .setQuery(query).setSort("stars").setDesc(true);
+    }
 
-        generalRxHttpExecute(forceNetWork -> getGitHubWebPageService()
-                        .getTrendingRepos(forceNetWork, language.getSlug(), since.name()),
-                httpObserver, !isReload);
+    private String getTrendingSinceDate(){
+        int days = TrendingSince.Weekly.equals(since) ? 7
+                : (TrendingSince.Monthly.equals(since) ? 30 : 2);
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, -days);
+        return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(calendar.getTime());
     }
 
     private void parseTrendingPageData(String page){

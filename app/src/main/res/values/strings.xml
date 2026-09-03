@@ -194,7 +194,8 @@
     <string name="app_copyright" translatable="false">© 2026 dvstdev</string>
     <string name="follow_on_github" >Follow on GitHub</string>
     <string name="email" >Email</string>
-    <string name="auth_email_address" translatable="false">rays.yuz@gmail.com</string>
+    <string name="auth_email_address" translatable="false">dvstdev@gmail.com</string>
+    <string name="source_code_url" translatable="false">https://github.com/dvstdev/OpenHubX</string>
     <string name="loading">loading</string>
 
     <string name="upgrade">Upgrade</string>

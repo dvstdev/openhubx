@@ -60,5 +60,6 @@
     <item
         android:id="@+id/action_bookmark"
         android:title="@string/bookmark"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_un_bookmark_title"
+        app:showAsAction="ifRoom"/>
 </menu>

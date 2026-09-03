@@ -13,6 +13,8 @@ import com.thirtydegreesray.openhub.ui.activity.base.PagerActivity;
 import com.thirtydegreesray.openhub.ui.adapter.base.FragmentPagerModel;
 import com.thirtydegreesray.openhub.ui.adapter.base.FragmentViewPagerAdapter;
 import com.thirtydegreesray.openhub.ui.fragment.RepositoriesFragment;
+import com.thirtydegreesray.openhub.ui.fragment.ActivityFragment;
+import com.thirtydegreesray.openhub.ui.fragment.TraceFragment;
 import com.thirtydegreesray.openhub.ui.fragment.UserListFragment;
 
 /**
@@ -62,9 +64,9 @@ public class TraceActivity extends PagerActivity {
 
     @Override
     protected int getFragmentPosition(Fragment fragment) {
-        if(fragment instanceof RepositoriesFragment){
+        if(fragment instanceof TraceFragment){
             return 0;
-        } else if(fragment instanceof UserListFragment){
+        } else if(fragment instanceof ActivityFragment){
             return 1;
         } else
             return -1;

@@ -50,4 +50,9 @@
         android:title="@string/language"
         android:key="language"/>
 
+    <Preference
+        android:icon="@drawable/ic_edit"
+        android:title="@string/font_size"
+        android:key="fontScale"/>
+
 </PreferenceScreen>

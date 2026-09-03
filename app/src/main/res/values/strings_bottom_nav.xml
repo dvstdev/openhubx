@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom-bar tab + selector-card labels (self-contained to avoid touching strings.xml) -->
+    <string name="bn_search">🔍 Search</string>
+    <string name="bn_glyph_search">🔍</string>
+    <string name="bn_glyph_profile">👤</string>
+    <string name="bn_glyph_more">⋯</string>
+    <string name="bn_activities">⚡ Activities</string>
+    <string name="bn_trace">🕒 Trace</string>
+    <string name="bn_notifications">🔔 Notifications</string>
+    <string name="bn_bookmarks">📌 Bookmarks</string>
+    <string name="bn_my_repos">📚 My Repos</string>
+    <string name="bn_starred_repos">⭐ Starred</string>
+    <string name="bn_issues">📋 Issues</string>
+    <string name="bn_now">💡 Now</string>
+    <string name="bn_following">👥 Following</string>
+    <string name="bn_history">History</string>
+    <string name="bn_trending">📈 Trending</string>
+    <string name="bn_topics">🏷️ Topics</string>
+    <string name="bn_settings">⚙️ Settings</string>
+    <string name="bn_about">ℹ️ About</string>
+</resources>

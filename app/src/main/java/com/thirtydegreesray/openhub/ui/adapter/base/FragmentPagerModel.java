@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 
 import com.thirtydegreesray.openhub.R;
+import com.thirtydegreesray.openhub.AppData;
 import com.thirtydegreesray.openhub.mvp.model.Issue;
 import com.thirtydegreesray.openhub.mvp.model.Repository;
 import com.thirtydegreesray.openhub.mvp.model.SearchModel;
@@ -22,6 +23,7 @@ import com.thirtydegreesray.openhub.ui.fragment.ProfileInfoFragment;
 import com.thirtydegreesray.openhub.ui.fragment.RepoFilesFragment;
 import com.thirtydegreesray.openhub.ui.fragment.RepoInfoFragment;
 import com.thirtydegreesray.openhub.ui.fragment.RepositoriesFragment;
+import com.thirtydegreesray.openhub.ui.fragment.TraceFragment;
 import com.thirtydegreesray.openhub.ui.fragment.UserListFragment;
 import com.thirtydegreesray.openhub.ui.fragment.base.BaseFragment;
 
@@ -151,10 +153,12 @@ public class FragmentPagerModel {
     public static List<FragmentPagerModel> createTracePagerList(
             @NonNull Context context, @NonNull ArrayList<Fragment> fragments) {
         return setPagerFragmentFlag(Arrays.asList(
-                new FragmentPagerModel(context.getString(R.string.repositories),
-                        getFragment(fragments, 0, () -> RepositoriesFragment.createForTrace())),
-                new FragmentPagerModel(context.getString(R.string.users),
-                        getFragment(fragments, 1, () -> UserListFragment.createForTrace()))
+                new FragmentPagerModel(context.getString(R.string.bn_history),
+                        getFragment(fragments, 0, () -> TraceFragment.create())),
+                new FragmentPagerModel(context.getString(R.string.activity),
+                        getFragment(fragments, 1, () -> ActivityFragment.create(
+                                ActivityFragment.ActivityType.User,
+                                AppData.INSTANCE.getLoggedUser().getLogin(), null)))
         ));
     }
 

@@ -97,10 +97,13 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
             String actionStr = null;
             SpannableStringBuilder descSpan = null;
             String fullName = model.getRepo() != null ? model.getRepo().getFullName() : null;
-            EventPayload.RefType refType = model.getPayload().getRefType();
-            String action = model.getPayload() != null ? model.getPayload().getAction() : null;
+            EventPayload payload = model.getPayload();
+            EventPayload.RefType refType = payload != null ? payload.getRefType() : null;
+            String action = payload != null ? payload.getAction() : null;
 
-            switch (model.getType()) {
+            Event.EventType eventType = model.getType();
+            if (eventType != null)
+            switch (eventType) {
                 case CommitCommentEvent:
                     actionStr = String.format(getString(R.string.created_comment_on_commit), fullName);
                     descSpan = new SpannableStringBuilder(model.getPayload().getComment().getBody());
@@ -201,31 +204,34 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
                     String branch = model.getPayload().getBranch();
                     actionStr = String.format(getString(R.string.push_to), branch, fullName);
 
-                    descSpan = new SpannableStringBuilder("");
-                    int count = model.getPayload().getCommits().size();
-                    int maxLines = 4;
-                    int max = count > maxLines ? maxLines - 1 : count;
+                    java.util.List<PushEventCommit> commits = model.getPayload().getCommits();
+                    if (commits != null && !commits.isEmpty()) {
+                        descSpan = new SpannableStringBuilder("");
+                        int count = commits.size();
+                        int maxLines = 4;
+                        int max = count > maxLines ? maxLines - 1 : count;
 
-                    for (int i = 0; i < max; i++) {
-                        PushEventCommit commit = model.getPayload().getCommits().get(i);
-                        if (i != 0) {
-                            descSpan.append("\n");
+                        for (int i = 0; i < max; i++) {
+                            PushEventCommit commit = commits.get(i);
+                            if (i != 0) {
+                                descSpan.append("\n");
+                            }
+
+                            int lastLength = descSpan.length();
+                            String sha = commit.getSha().substring(0, 7);
+                            descSpan.append(sha);
+                            descSpan.setSpan(new TextAppearanceSpan(context, R.style.text_link),
+                                    lastLength, lastLength + sha.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                            descSpan.append(" ");
+                            descSpan.append(getFirstLine(commit.getMessage()));
+
+                            descSpan.setSpan(new EllipsizeLineSpan(i == (count - 1) ? 0 : 0),
+                                    lastLength, descSpan.length(), 0);
                         }
-
-                        int lastLength = descSpan.length();
-                        String sha = commit.getSha().substring(0, 7);
-                        descSpan.append(sha);
-                        descSpan.setSpan(new TextAppearanceSpan(context, R.style.text_link),
-                                lastLength, lastLength + sha.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                        descSpan.append(" ");
-                        descSpan.append(getFirstLine(commit.getMessage()));
-
-                        descSpan.setSpan(new EllipsizeLineSpan(i == (count - 1) ? 0 : 0),
-                                lastLength, descSpan.length(), 0);
-                    }
-                    if(count > maxLines){
-                        descSpan.append("\n").append("...");
+                        if (count > maxLines) {
+                            descSpan.append("\n").append("...");
+                        }
                     }
                     break;
                 case ReleaseEvent:
@@ -262,8 +268,12 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
         }
 
         private String getPullRequestReviewEventStr(String action){
-            EventPayload.PullRequestReviewEventActionType actionType =
-                    EventPayload.PullRequestReviewEventActionType.valueOf(action);
+            EventPayload.PullRequestReviewEventActionType actionType;
+            try {
+                actionType = EventPayload.PullRequestReviewEventActionType.valueOf(action);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return getString(R.string.submitted_pull_request_review_at);
+            }
             switch (actionType){
                 case submitted:
                     return getString(R.string.submitted_pull_request_review_at);
@@ -277,8 +287,12 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
         }
 
         private String getPullRequestReviewCommentEventStr(String action){
-            EventPayload.PullRequestReviewCommentEventActionType actionType =
-                    EventPayload.PullRequestReviewCommentEventActionType.valueOf(action);
+            EventPayload.PullRequestReviewCommentEventActionType actionType;
+            try {
+                actionType = EventPayload.PullRequestReviewCommentEventActionType.valueOf(action);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return getString(R.string.created_pull_request_comment_at);
+            }
             switch (actionType){
                 case created:
                     return getString(R.string.created_pull_request_comment_at);
@@ -292,7 +306,12 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
         }
 
         private String getMemberEventStr(String action){
-            EventPayload.MemberEventActionType actionType = EventPayload.MemberEventActionType.valueOf(action);
+            EventPayload.MemberEventActionType actionType;
+            try {
+                actionType = EventPayload.MemberEventActionType.valueOf(action);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return getString(R.string.added_member_to);
+            }
             switch (actionType){
                 case added:
                     return getString(R.string.added_member_to);
@@ -306,7 +325,12 @@ public class ActivitiesAdapter extends BaseAdapter<ActivitiesAdapter.ViewHolder,
         }
 
         private String getIssueEventStr(String action){
-            EventPayload.IssueEventActionType actionType = EventPayload.IssueEventActionType.valueOf(action);
+            EventPayload.IssueEventActionType actionType;
+            try {
+                actionType = EventPayload.IssueEventActionType.valueOf(action);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return getString(R.string.opened_issue_at);
+            }
             switch (actionType){
                 case assigned:
                     return getString(R.string.assigned_issue_at);

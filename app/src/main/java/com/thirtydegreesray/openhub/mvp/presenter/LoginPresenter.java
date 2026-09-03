@@ -63,8 +63,13 @@ public class LoginPresenter extends BasePresenter<ILoginContract.View>
                             @Override
                             public void onSuccess(@NonNull HttpResponse<OauthToken> response) {
                                 OauthToken token = response.body();
-                                if (token != null) {
+                                if (token != null && token.getAccessToken() != null) {
                                     mView.onGetTokenSuccess(BasicToken.generateFromOauthToken(token));
+                                } else if (token != null && token.getError() != null) {
+                                    // GitHub returns HTTP 200 with an error body (e.g.
+                                    // incorrect_client_credentials) and no access_token.
+                                    mView.onGetTokenError(token.getErrorDescription() != null
+                                            ? token.getErrorDescription() : token.getError());
                                 } else {
                                     mView.onGetTokenError(response.getOriResponse().message());
                                 }
