@@ -67,6 +67,73 @@ An **open-source** GitHub Android client app, faster and concise.
 ### And more
 * OpenHub is growing, and trying to be a better GitHub client.
 
+## Building & Debugging
+
+> This fork (**OpenHubX**) builds with the Brazil-free stock Gradle toolchain. It targets
+> the legacy support library (pre-AndroidX) and older annotation processors, so the JDK
+> version matters.
+
+### Prerequisites
+- **JDK 11** (required). Newer JDKs (16+/17) break the Butterknife 8.7 annotation
+  processor with `module jdk.compiler does not export com.sun.tools.javac.tree`.
+- Android SDK with `build-tools 29.0.3`, `platform-29`, `platform-tools`.
+- A `local.properties` at the repo root:
+  ```properties
+  sdk.dir=/path/to/android-sdk
+  # OAuth (register an app at https://github.com/settings/developers)
+  openhub_client_id=YOUR_CLIENT_ID
+  openhub_client_secret=YOUR_CLIENT_SECRET
+  # Release signing (optional; only needed for assembleRelease)
+  sign_path=/path/to/release.jks
+  store_password=...
+  key_alias=...
+  key_password=...
+  ```
+
+### Build (debug)
+```bash
+export ANDROID_HOME=/path/to/android-sdk
+export JAVA_HOME=/path/to/jdk-11
+
+./gradlew assembleNormalDebug
+```
+On hosts where the Gradle file watcher fails (kernel `ENOSYS`), disable it:
+```bash
+./gradlew assembleNormalDebug --no-daemon --no-watch-fs -Dorg.gradle.vfs.watch=false
+```
+The debug APK lands in `app/build/outputs/apk/normal/debug/`.
+
+### Build variants
+Two product flavors: **normal** and **fullName** — each with `debug` / `release`.
+```bash
+./gradlew assembleNormalDebug        # normal debug
+./gradlew assembleNormalRelease      # normal signed release
+./gradlew assembleFullnameRelease    # fullName signed release
+```
+
+### Run tests / lint
+```bash
+./gradlew testNormalDebugUnitTest    # JUnit unit tests
+```
+
+### Install & debug on a device/emulator
+```bash
+adb install -r app/build/outputs/apk/normal/debug/app-normal-debug.apk
+# stream crash logs:
+adb logcat -b crash
+# or filter by the app tag:
+adb logcat | grep -i OpenHub_Logger
+```
+Uninstall/reinstall if switching between debug and release signatures:
+```bash
+adb uninstall com.thirtydegreesray.openhub && adb install -r <apk>
+```
+
+### Notes
+- Some original dependencies were published only to the now-defunct jcenter; the build
+  resolves them via a Maven mirror plus `mavenCentral()` / `google()`.
+- `javax.annotation-api:1.3.2` is included so Dagger 2.11 / Glide codegen works on JDK 9+.
+
 ## Screenshots
 
 | News | Drawer | Profile |

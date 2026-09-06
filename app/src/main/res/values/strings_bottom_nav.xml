@@ -2,9 +2,6 @@
 <resources>
     <!-- Bottom-bar tab + selector-card labels (self-contained to avoid touching strings.xml) -->
     <string name="bn_search">🔍 Search</string>
-    <string name="bn_glyph_search">🔍</string>
-    <string name="bn_glyph_profile">👤</string>
-    <string name="bn_glyph_more">⋯</string>
     <string name="bn_activities">⚡ Activities</string>
     <string name="bn_trace">🕒 Trace</string>
     <string name="bn_notifications">🔔 Notifications</string>

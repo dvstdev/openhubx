@@ -132,7 +132,8 @@ public class AboutActivity extends MaterialAboutActivity {
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {
                     @Override
                     public void onClick() {
-                        AppOpener.shareText(AboutActivity.this, getString(R.string.cookapk_download_url));
+                        AppOpener.shareText(AboutActivity.this,
+                                getString(R.string.app_name) + " — " + getString(R.string.source_code_url));
                     }
                 })
                 .build());
