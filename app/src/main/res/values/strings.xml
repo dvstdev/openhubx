@@ -187,7 +187,6 @@
     <string name="version" >Version</string>
     <string name="source_code" >Source code</string>
     <string name="source_code_wishes" >Star to support me</string>
-    <string name="rate_in_market" >Rate or comment in market</string>
     <string name="author" >Author</string>
     <string name="author_name" translatable="false">dvstdev</string>
     <string name="author_login_id" translatable="false">dvstdev</string>
@@ -299,7 +298,6 @@
     <string name="no_notifications_tip">No new notifications.</string>
     <string name="feedback_and_share">Share &#038; Feedback</string>
     <string name="share_to_friends">Share to your friends</string>
-    <string name="cookapk_download_url" translatable="false">https://www.coolapk.com/apk/com.thirtydegreesray.openhub</string>
     <string name="feedback">Feedback</string>
 
     <string name="openhub_wishes">Wishes From OpenHub</string>

@@ -138,16 +138,6 @@ public class AboutActivity extends MaterialAboutActivity {
                 })
                 .build());
         appBuilder.addItem(new MaterialAboutActionItem.Builder()
-                .text(R.string.rate_in_market)
-                .icon(R.drawable.ic_menu_star)
-                .setOnClickAction(new MaterialAboutItemOnClickAction() {
-                    @Override
-                    public void onClick() {
-                        AppOpener.openInMarket(context);
-                    }
-                })
-                .build());
-        appBuilder.addItem(new MaterialAboutActionItem.Builder()
                 .text(R.string.feedback)
                 .icon(R.drawable.ic_feedback)
                 .setOnClickAction(new MaterialAboutItemOnClickAction() {

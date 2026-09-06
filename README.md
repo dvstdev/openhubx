@@ -1,12 +1,8 @@
-English | [中文](/README-cn.md)
-# OpenHub
-[![Releases](https://img.shields.io/badge/android-5.0%2B-brightgreen.svg)](https://play.google.com/store/apps/details?id=com.thirtydegreesray.openhub)
-[![Releases](https://img.shields.io/github/release/ThirtyDegreesRay/OpenHub.svg)](https://github.com/ThirtyDegreesRay/OpenHub/releases/latest)
+# OpenHubX
 
-An **open-source** GitHub Android client app, faster and concise.
-
-[![Google Play](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/google_play.png?raw=true)](https://play.google.com/store/apps/details?id=com.thirtydegreesray.openhub)
-[![Coolapk](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/coolapk.png?raw=true)](https://www.coolapk.com/apk/com.thirtydegreesray.openhub)
+A fast, concise **open-source** GitHub Android client. OpenHubX is a modernized fork of
+[OpenHub](https://github.com/ThirtyDegreesRay/OpenHub) by dvstdev, distributed via GitHub
+releases only (not on Google Play or CoolApk).
 
 ## Features
 
@@ -133,16 +129,6 @@ adb uninstall com.thirtydegreesray.openhub && adb install -r <apk>
 - Some original dependencies were published only to the now-defunct jcenter; the build
   resolves them via a Maven mirror plus `mavenCentral()` / `google()`.
 - `javax.annotation-api:1.3.2` is included so Dagger 2.11 / Glide codegen works on JDK 9+.
-
-## Screenshots
-
-| News | Drawer | Profile |
-|:-:|:-:|:-:|
-| ![news](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/news.png?raw=true) | ![drawer](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/drawer.png?raw=true) | ![profile](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/profile.png?raw=true) |
-
-| Repository | Commit | Code |
-|:-:|:-:|:-:|
-| ![repo](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/repo.png?raw=true) | ![commit](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/commit.png?raw=true) | ![code](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/code.png?raw=true) |
 
 ## Thanks for open source
 
