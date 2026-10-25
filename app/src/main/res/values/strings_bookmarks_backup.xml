@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="export_bookmarks">Export bookmarks</string>
+    <string name="export_bookmarks_desc">Save bookmarks to a file</string>
+    <string name="import_bookmarks">Import bookmarks</string>
+    <string name="import_bookmarks_desc">Restore bookmarks from a file</string>
+    <string name="share_bookmarks">Share bookmarks</string>
+    <string name="bookmarks_exported">Bookmarks exported</string>
+    <string name="bookmarks_export_empty">No bookmarks to export</string>
+    <string name="bookmarks_imported">Imported %d bookmark(s)</string>
+    <string name="bookmarks_backup_failed">Bookmark backup failed</string>
+</resources>

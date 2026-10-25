@@ -10,3 +10,6 @@
 *.apk
 /app/release
 /todo.txt
+
+# Build output staging dir (APKs, mockups)
+dist/

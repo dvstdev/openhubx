@@ -1,73 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<android.support.design.widget.CoordinatorLayout
+<!-- Login, design C: one list row per sign-in way (icon tile, title, short line, chevron).
+     The token row expands an inline panel with the token field and its steps. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?colorPrimary"
-    android:gravity="center_horizontal"
-    android:padding="@dimen/activity_margin"
     tools:context=".ui.activity.LoginActivity">
 
-    <android.support.v7.widget.CardView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="@dimen/spacing_normal"
-        android:minHeight="380dp"
-        android:minWidth="250dp"
-        app:cardElevation="@dimen/spacing_large"
-        android:background="?card_background">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:padding="@dimen/activity_margin">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:padding="@dimen/spacing_normal"
-                android:src="@mipmap/logo_big"
-                android:background="?colorAccent"/>
+            android:layout_gravity="center"
+            android:layout_margin="@dimen/spacing_normal"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="@dimen/spacing_large">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingRight="@dimen/spacing_normal"
-                android:paddingLeft="@dimen/spacing_normal"
-                android:gravity="center_horizontal"
-                android:background="?card_background">
+                android:orientation="vertical">
 
-                <com.unstoppable.submitbuttonview.SubmitButton
-                    android:id="@+id/login_bn"
-                    android:layout_width="220dp"
-                    android:layout_height="45dp"
-                    android:layout_marginTop="@dimen/spacing_huge"
-                    android:layout_marginBottom="@dimen/spacing_huge"
-                    app:buttonColor="?colorAccent"
-                    app:buttonText="@string/login_in_browser"
-                    app:buttonTextSize="18sp"/>
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="96dp"
+                    android:padding="@dimen/spacing_normal"
+                    android:src="@mipmap/logo_big"
+                    android:background="?colorAccent"
+                    android:contentDescription="@string/app_name"/>
 
-                <View
-                    style="@style/DividerLine.Horizontal"
-                    android:layout_marginTop="@dimen/spacing_normal"
-                    android:layout_marginBottom="@dimen/spacing_normal"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/oauth_tip"/>
+                    android:orientation="vertical"
+                    android:paddingLeft="@dimen/spacing_x_large"
+                    android:paddingRight="@dimen/spacing_x_large"
+                    android:paddingTop="@dimen/spacing_large"
+                    android:paddingBottom="@dimen/spacing_large">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_small"
+                        android:text="@string/login_choose_title"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:textColorPrimary"/>
+
+                    <!-- 1. Browser -->
+                    <LinearLayout android:id="@+id/row_browser" style="@style/LoginListRow">
+                        <ImageView style="@style/LoginListIcon"
+                            android:src="@drawable/ic_open_in_browser"
+                            android:backgroundTint="@color/login_browser"/>
+                        <LinearLayout style="@style/LoginListText">
+                            <TextView style="@style/LoginListTitle" android:text="@string/login_row_browser"/>
+                            <TextView style="@style/LoginListSub" android:text="@string/login_row_browser_sub"/>
+                        </LinearLayout>
+                        <ImageView style="@style/LoginListChevron"/>
+                    </LinearLayout>
+
+                    <View style="@style/LoginListDivider"/>
+
+                    <!-- 2. QR -->
+                    <LinearLayout android:id="@+id/row_qr" style="@style/LoginListRow">
+                        <ImageView style="@style/LoginListIcon"
+                            android:src="@drawable/ic_qr_code"
+                            android:backgroundTint="@color/login_qr"/>
+                        <LinearLayout style="@style/LoginListText">
+                            <TextView style="@style/LoginListTitle" android:text="@string/login_row_qr"/>
+                            <TextView style="@style/LoginListSub" android:text="@string/login_row_qr_sub"/>
+                        </LinearLayout>
+                        <ImageView style="@style/LoginListChevron"/>
+                    </LinearLayout>
+
+                    <View style="@style/LoginListDivider"/>
+
+                    <!-- 3. Token (row expands the panel below) -->
+                    <LinearLayout android:id="@+id/row_token" style="@style/LoginListRow">
+                        <ImageView style="@style/LoginListIcon"
+                            android:src="@drawable/ic_lock"
+                            android:backgroundTint="@color/login_token"/>
+                        <LinearLayout style="@style/LoginListText">
+                            <TextView style="@style/LoginListTitle" android:text="@string/login_row_token"/>
+                            <TextView style="@style/LoginListSub" android:text="@string/login_row_token_sub"/>
+                        </LinearLayout>
+                        <ImageView android:id="@+id/token_chevron" style="@style/LoginListChevron"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/token_panel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="56dp"
+                        android:paddingBottom="@dimen/spacing_normal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/token_login_help"
+                            android:textSize="13sp"
+                            android:lineSpacingMultiplier="1.15"
+                            android:textColor="?android:textColorSecondary"/>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/token_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_normal"
+                            android:hint="@string/token_hint"
+                            app:passwordToggleEnabled="true"
+                            app:passwordToggleTint="@color/login_token">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/token_et"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPassword"
+                                android:maxLines="1"
+                                android:imeOptions="actionDone"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/token_login_bn"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="@dimen/spacing_normal"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="@string/login_with_token"
+                            android:textColor="@color/white"
+                            app:backgroundTint="@color/login_token"/>
+                    </LinearLayout>
+
+                    <View style="@style/LoginListDivider"/>
+
+                    <!-- 4. Browse without an account -->
+                    <LinearLayout android:id="@+id/row_browse" style="@style/LoginListRow">
+                        <ImageView style="@style/LoginListIcon"
+                            android:src="@drawable/ic_menu_trending"
+                            android:backgroundTint="@color/login_browse"/>
+                        <LinearLayout style="@style/LoginListText">
+                            <TextView style="@style/LoginListTitle" android:text="@string/login_row_browse"/>
+                            <TextView style="@style/LoginListSub" android:text="@string/login_row_browse_sub"/>
+                        </LinearLayout>
+                        <ImageView style="@style/LoginListChevron"/>
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
-    </android.support.v7.widget.CardView>
+    </androidx.core.widget.NestedScrollView>
 
-</android.support.design.widget.CoordinatorLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -11,6 +11,12 @@
     <color name="black_overlay">#66000000</color>
     <color name="black_light">#212121</color>
 
+    <!-- Login option accents: browser = blue, QR = green, token = purple -->
+    <color name="login_browser">#2F81F7</color>
+    <color name="login_qr">#2EA043</color>
+    <color name="login_token">#8957E5</color>
+    <color name="login_browse">#8A929C</color>
+
     <color name="material_amber_100">#FFECB3</color>
     <color name="material_amber_200">#FFE082</color>
     <color name="material_amber_300">#FFD54F</color>

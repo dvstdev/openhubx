@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_github_name" translatable="false">OpenHub</string>
+    <string name="app_github_name" translatable="false">OpenHubX</string>
     <string name="navigation_drawer_open" translatable="false">navigation_drawer_open</string>
     <string name="navigation_drawer_close" translatable="false">navigation_drawer_close</string>
 
@@ -28,6 +28,24 @@
     <string name="login">Login</string>
     <string name="login_in_browser">LOGIN WITH BROWSER</string>
     <string name="oauth_tip">For now we only support OAuth login in browser, Because Github will remove the Authorizations API endpoint on November 13, 2020. </string>
+    <string name="login_with_qr">SIGN IN WITH QR</string>
+    <string name="qr_scan_prompt">Scan a login QR code</string>
+    <string name="qr_camera_permission_denied">Camera permission is required to scan a login QR code.</string>
+    <string name="qr_scan_cancelled">QR scan cancelled.</string>
+    <string name="qr_scanned">QR code scanned.</string>
+    <string name="qr_error_invalid">Not a valid OpenHubX login code</string>
+    <string name="qr_error_expired">This code has expired</string>
+    <string name="qr_token_rejected">Token rejected by GitHub</string>
+    <string name="login_expired_scan_new">Login expired, scan a new code</string>
+    <!-- Token-paste login + per-method help -->
+    <string name="login_with_token">SIGN IN WITH TOKEN</string>
+    <string name="login_token_divider">— or sign in with a token —</string>
+    <string name="token_hint">Paste a GitHub token</string>
+    <string name="token_empty_warning">Enter a token first</string>
+    <string name="login_help_show">How does this work?</string>
+    <string name="browser_login_help">Opens GitHub in your browser. Sign in there and approve OpenHubX. You come back signed in. Nothing to set up.</string>
+    <string name="qr_login_help">On a computer, make a login QR with the OpenHubX helper or the token page. Tap this button and scan it. You can also scan it with the phone camera.</string>
+    <string name="token_login_help">On GitHub, open Settings → Developer settings → Tokens and make a token. Copy it, paste it above, then tap this button. Fine-grained and classic tokens both work.</string>
     <string name="user_name_warning">Invalid username!</string>
     <string name="password_warning">Invalid password!</string>
 
@@ -187,16 +205,14 @@
     <string name="version" >Version</string>
     <string name="source_code" >Source code</string>
     <string name="source_code_wishes" >Star to support me</string>
-    <string name="rate_in_market" >Rate or comment in market</string>
     <string name="author" >Author</string>
-    <string name="author_name" translatable="false">30度的射线</string>
-    <string name="author_location" translatable="false">NanJing,China</string>
-    <string name="author_login_id" translatable="false">ThirtyDegreesRay</string>
-    <string name="author_avatar_url" translatable="false">https://avatars1.githubusercontent.com/u/9625508?v=4</string>
-    <string name="app_copyright" translatable="false">© 2017 ThirtyDegreesRay</string>
+    <string name="author_name" translatable="false">dvstdev</string>
+    <string name="author_login_id" translatable="false">dvstdev</string>
+    <string name="app_copyright" translatable="false">© 2026 dvstdev</string>
     <string name="follow_on_github" >Follow on GitHub</string>
     <string name="email" >Email</string>
-    <string name="auth_email_address" translatable="false">rays.yuz@gmail.com</string>
+    <string name="auth_email_address" translatable="false">dvstdev@gmail.com</string>
+    <string name="source_code_url" translatable="false">https://github.com/dvstdev/OpenHubX</string>
     <string name="loading">loading</string>
 
     <string name="upgrade">Upgrade</string>
@@ -300,7 +316,6 @@
     <string name="no_notifications_tip">No new notifications.</string>
     <string name="feedback_and_share">Share &#038; Feedback</string>
     <string name="share_to_friends">Share to your friends</string>
-    <string name="cookapk_download_url" translatable="false">https://www.coolapk.com/apk/com.thirtydegreesray.openhub</string>
     <string name="feedback">Feedback</string>
 
     <string name="openhub_wishes">Wishes From OpenHub</string>
@@ -439,6 +454,7 @@
     <string name="custom">Custom</string>
     <string name="done">Done</string>
     <string name="presets">Presets</string>
+    <string name="back">Back</string>
     <string name="choose_color">Choose color</string>
     <string name="invalid_color">Invalid color</string>
     <string name="invalid_name">Invalid name</string>
@@ -475,6 +491,55 @@
     </string>
 
     <string name="add_account">Add account</string>
+    <string name="request_failed">Request failed: HTTP %1$d</string>
+    <string name="notifications_scope_hint">Notifications aren\'t available for token or QR sign-in — GitHub doesn\'t allow it. Sign in with the browser option to see them.</string>
+    <string name="issues_scope_hint">This sign-in can\'t read these issues. Use the browser sign-in, or grant Issues access to your token.</string>
+    <string name="access_forbidden_hint">You don\'t have access to this (HTTP 403).</string>
+    <string name="browse_without_login">Browse without signing in</string>
+    <string name="browse_guest">Guest</string>
+    <string name="tap_to_sign_in">Tap to sign in</string>
+    <string name="sign_in_required">Sign in to use this.</string>
+    <string name="sign_in_title">Sign in to OpenHubX</string>
+    <string name="login_choose_title">Choose how to sign in</string>
+    <string name="login_row_browser">Browser</string>
+    <string name="login_row_browser_sub">Full access, one tap</string>
+    <string name="login_row_qr">Scan QR</string>
+    <string name="login_row_qr_sub">Made on your computer</string>
+    <string name="login_row_token">Paste token</string>
+    <string name="login_row_token_sub">From GitHub settings</string>
+    <string name="login_row_browse">Just browse</string>
+    <string name="login_row_browse_sub">Trending and Topics, no account</string>
+    <string name="login_or">or</string>
+    <string name="browse_login_help">Explore Trending and Topics without an account. Sign in later for your repos, notifications and bookmarks.</string>
+    <string name="switch_account">Switch account</string>
+    <string name="no_other_accounts">No other accounts yet. Add one?</string>
     <string name="delete_label_warning">Confirm to delete this label?</string>
+
+    <!-- Search filters / history -->
+    <string name="search_filters">Search filters</string>
+    <string name="any_language">Any language</string>
+    <string name="filter_min_stars">Minimum stars</string>
+    <string name="filter_pushed_after">Pushed after</string>
+    <string name="filter_pushed_after_hint">YYYY-MM-DD (tap to pick)</string>
+    <string name="fork_default">Exclude forks</string>
+    <string name="fork_include">Include forks</string>
+    <string name="fork_only">Only forks</string>
+    <string name="filter_owner">Owner (user or organization)</string>
+    <string name="owner_user">User</string>
+    <string name="owner_org">Organization</string>
+    <string name="filter_topic">Topic</string>
+    <string name="filter_license">License (e.g. mit, apache-2.0)</string>
+    <string name="filter_repo_only_hint">Stars, pushed, forks, topic and license apply to repository search only.</string>
+    <string name="reset">Reset</string>
+    <string name="apply">Apply</string>
+    <string name="filters_count">%1$d filter(s)</string>
+    <string name="clear_search_history">Clear search history</string>
+    <string name="clear_search_history_warning">Delete all search history?</string>
+    <string name="search_history_cleared">Search history cleared</string>
+    <string name="code">Code</string>
+    <string name="issues_and_prs">Issues &amp; PRs</string>
+    <string name="no_code_results">No code found</string>
+    <string name="code_search_login_required">Code search requires a signed-in GitHub account.</string>
+    <string name="search_query_invalid">GitHub rejected this search (422). Check the query and filters; code search needs search text.</string>
 
 </resources>

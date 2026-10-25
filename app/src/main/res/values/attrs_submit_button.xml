@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Attrs for com.darktile.openhubx.ui.widget.SubmitButton
+         (previously provided by the removed com.unstoppable:submitbutton library). -->
+    <declare-styleable name="SubmitButton">
+        <attr name="buttonColor" format="color|reference"/>
+        <attr name="buttonText" format="string|reference"/>
+        <attr name="buttonTextSize" format="dimension"/>
+    </declare-styleable>
+</resources>

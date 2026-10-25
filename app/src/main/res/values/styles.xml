@@ -48,4 +48,81 @@
         <item name="android:gravity">center</item>
     </style>
 
+    <!-- material-about-library 3.1.2 dropped these Theme.Mal.Toolbar.* styles but still
+         exposes mal_toolbarTheme / mal_toolbarPopupTheme attrs; re-declare them as the
+         standard ActionBar theme overlays the older library used. -->
+    <style name="Theme.Mal.Toolbar.Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="Theme.Mal.Toolbar.Light" parent="ThemeOverlay.AppCompat.Light"/>
+
+    <style name="SearchFilterLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">@dimen/spacing_normal</item>
+        <item name="android:textSize">@dimen/text_mini</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+    <!-- Login screen (design C): one tappable list row per sign-in way. -->
+    <style name="LoginListRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingTop">@dimen/spacing_normal</item>
+        <item name="android:paddingBottom">@dimen/spacing_normal</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+
+    <style name="LoginListIcon">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:background">@drawable/login_icon_bg</item>
+        <item name="android:tint">@color/white</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <style name="LoginListText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">@dimen/spacing_large</item>
+        <item name="android:layout_marginEnd">@dimen/spacing_small</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="LoginListTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:textColorPrimary</item>
+    </style>
+
+    <style name="LoginListSub">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+    <style name="LoginListChevron">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:src">@drawable/ic_keyboard_arrow_right</item>
+        <item name="android:tint">?android:textColorSecondary</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <style name="LoginListDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginStart">56dp</item>
+        <item name="android:background">?android:attr/listDivider</item>
+    </style>
+
 </resources>

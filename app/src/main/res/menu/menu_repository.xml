@@ -3,7 +3,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
-      tools:context="com.thirtydegreesray.openhub.ui.activity.RepositoryActivity">
+      tools:context="com.darktile.openhubx.ui.activity.RepositoryActivity">
     <item
         android:id="@+id/action_star"
         android:title="@string/star"
@@ -60,5 +60,6 @@
     <item
         android:id="@+id/action_bookmark"
         android:title="@string/bookmark"
-        app:showAsAction="never"/>
+        android:icon="@drawable/ic_un_bookmark_title"
+        app:showAsAction="ifRoom"/>
 </menu>

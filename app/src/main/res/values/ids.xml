@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <resources>
     <item name="position_tag" type="id"/>
+
+    <!-- Bottom-nav content destinations not backed by a drawer menu item. -->
+    <item name="nav_bn_trending" type="id"/>
+    <item name="nav_bn_notifications" type="id"/>
 </resources>

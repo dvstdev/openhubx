@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_normal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/search_filters"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="@dimen/text_large"
+            android:paddingBottom="@dimen/spacing_normal"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/language"/>
+        <Spinner
+            android:id="@+id/language_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/filter_owner"/>
+        <EditText
+            android:id="@+id/owner_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:importantForAutofill="no"
+            android:hint="@string/filter_owner"/>
+        <RadioGroup
+            android:id="@+id/owner_type_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/owner_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/owner_user"/>
+            <RadioButton
+                android:id="@+id/owner_org"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/owner_org"/>
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/spacing_normal"
+            android:text="@string/filter_repo_only_hint"
+            android:textColor="?android:textColorSecondary"
+            android:textSize="@dimen/text_mini"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/filter_min_stars"/>
+        <EditText
+            android:id="@+id/stars_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="9"
+            android:importantForAutofill="no"
+            android:hint="@string/filter_min_stars"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/filter_pushed_after"/>
+        <EditText
+            android:id="@+id/pushed_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:inputType="none"
+            android:importantForAutofill="no"
+            android:hint="@string/filter_pushed_after_hint"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/forks"/>
+        <Spinner
+            android:id="@+id/fork_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/filter_topic"/>
+        <EditText
+            android:id="@+id/topic_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:importantForAutofill="no"
+            android:hint="@string/filter_topic"/>
+
+        <TextView
+            style="@style/SearchFilterLabel"
+            android:text="@string/filter_license"/>
+        <EditText
+            android:id="@+id/license_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:importantForAutofill="no"
+            android:hint="@string/filter_license"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/spacing_normal">
+            <Button
+                android:id="@+id/reset_button"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/reset"/>
+            <Button
+                android:id="@+id/apply_button"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/apply"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -7,8 +7,12 @@
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search_title"
         android:title="@string/search"
-        app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView"/>
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_filter"
+        android:icon="@drawable/ic_filter_title"
+        android:title="@string/filter"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_sort"
         android:icon="@drawable/ic_sort_title"
@@ -64,4 +68,8 @@
         android:icon="@drawable/ic_info_title"
         android:title="@string/info"
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_clear_history"
+        android:title="@string/clear_search_history"
+        app:showAsAction="never"/>
 </menu>

@@ -1,1 +1,8 @@
-include ':app', ':daogenerator'
+include ':app'
+
+// DataAutoAccess (Apache-2.0), imported as source from
+// https://github.com/ThirtyDegreesRay/DataAutoAccess at v1.2.8.
+['dataautoaccess', 'dataautoaccess-annotations', 'dataautoaccess-compiler'].each {
+    include ":$it"
+    project(":$it").projectDir = file("third_party/dataautoaccess/$it")
+}
