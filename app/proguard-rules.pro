@@ -37,13 +37,13 @@
 -dontwarn javax.annotation.**
 -dontwarn javax.inject.**
 
--keep class com.thirtydegreesray.openhub.http.model.** { *; }
--keep class com.thirtydegreesray.openhub.mvp.model.** { *; }
+-keep class com.darktile.openhubx.http.model.** { *; }
+-keep class com.darktile.openhubx.mvp.model.** { *; }
 
 # DataAutoAccess
--keep class com.thirtydegreesray.dataautoaccess.** { *; }
+-keep class com.darktile.dataautoaccess.** { *; }
 -keep class **$$DataAccessor { *; }
--keepclasseswithmembernames class * { @com.thirtydegreesray.dataautoaccess.annotation.AutoAccess <fields>;}
+-keepclasseswithmembernames class * { @com.darktile.dataautoaccess.annotation.AutoAccess <fields>;}
 
 # greenDAO 3
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
@@ -99,7 +99,7 @@ public static java.lang.String TABLENAME;
 # Gson
 -keep class com.google.gson.stream.** { *; }
 -keepattributes EnclosingMethod
--keep class com.thirtydegreesray.openhub.mvp.model.**{*;}
--keep class com.thirtydegreesray.openhub.dao.**{*;}
+-keep class com.darktile.openhubx.mvp.model.**{*;}
+-keep class com.darktile.openhubx.dao.**{*;}
 # SimpleXml
 -keep class org.simpleframework.xml.core.**{ *; }

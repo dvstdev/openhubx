@@ -2,9 +2,10 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.thirtydegreesray.openhub" android:installLocation="auto">
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -26,7 +27,7 @@
         <receiver android:name=".service.CopyBroadcastReceiver"/>
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -37,6 +38,7 @@
 
         <activity
             android:name=".ui.activity.SplashActivity"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
@@ -53,6 +55,7 @@
 
         <activity
             android:name=".ui.activity.LoginActivity"
+            android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait">
@@ -69,6 +72,7 @@
         <activity
             android:name=".ui.activity.BrowserFilterActivity"
             android:excludeFromRecents="true"
+            android:exported="true"
             android:taskAffinity=""
             android:theme="@style/SplashTheme">
             <intent-filter>

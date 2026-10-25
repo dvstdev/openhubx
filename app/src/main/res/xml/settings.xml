@@ -8,7 +8,7 @@
         android:title="@string/choose_theme"
         android:key="appTheme"/>
 
-    <com.thirtydegreesray.openhub.ui.widget.colorChooser.ColorChooserPreference
+    <com.darktile.openhubx.ui.widget.colorChooser.ColorChooserPreference
         android:icon="@drawable/ic_color_lens"
         android:title="@string/theme_accent_color"
         android:key="accentColor"/>
@@ -49,5 +49,10 @@
         android:icon="@drawable/ic_language"
         android:title="@string/language"
         android:key="language"/>
+
+    <Preference
+        android:icon="@drawable/ic_edit"
+        android:title="@string/font_size"
+        android:key="fontScale"/>
 
 </PreferenceScreen>

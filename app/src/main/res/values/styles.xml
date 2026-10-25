@@ -48,4 +48,10 @@
         <item name="android:gravity">center</item>
     </style>
 
+    <!-- material-about-library 3.1.2 dropped these Theme.Mal.Toolbar.* styles but still
+         exposes mal_toolbarTheme / mal_toolbarPopupTheme attrs; re-declare them as the
+         standard ActionBar theme overlays the older library used. -->
+    <style name="Theme.Mal.Toolbar.Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="Theme.Mal.Toolbar.Light" parent="ThemeOverlay.AppCompat.Light"/>
+
 </resources>

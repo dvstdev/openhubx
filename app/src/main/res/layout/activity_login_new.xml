@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<android.support.design.widget.CoordinatorLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -13,7 +13,7 @@
     android:padding="@dimen/activity_margin"
     tools:context=".ui.activity.LoginActivity">
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -45,7 +45,7 @@
                 android:gravity="center_horizontal"
                 android:background="?card_background">
 
-                <com.unstoppable.submitbuttonview.SubmitButton
+                <com.darktile.openhubx.ui.widget.SubmitButton
                     android:id="@+id/login_bn"
                     android:layout_width="220dp"
                     android:layout_height="45dp"
@@ -54,6 +54,16 @@
                     app:buttonColor="?colorAccent"
                     app:buttonText="@string/login_in_browser"
                     app:buttonTextSize="18sp"/>
+
+                <Button
+                    android:id="@+id/qr_login_bn"
+                    android:layout_width="220dp"
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="@dimen/spacing_huge"
+                    android:text="@string/login_with_qr"
+                    android:textColor="?colorAccent"
+                    android:textSize="16sp"
+                    style="?android:attr/borderlessButtonStyle"/>
 
                 <View
                     style="@style/DividerLine.Horizontal"
@@ -68,6 +78,6 @@
             </LinearLayout>
 
         </LinearLayout>
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
-</android.support.design.widget.CoordinatorLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

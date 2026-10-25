@@ -1,12 +1,8 @@
-English | [中文](/README-cn.md)
-# OpenHub
-[![Releases](https://img.shields.io/badge/android-5.0%2B-brightgreen.svg)](https://play.google.com/store/apps/details?id=com.thirtydegreesray.openhub)
-[![Releases](https://img.shields.io/github/release/ThirtyDegreesRay/OpenHub.svg)](https://github.com/ThirtyDegreesRay/OpenHub/releases/latest)
+# OpenHubX
 
-An **open-source** GitHub Android client app, faster and concise.
-
-[![Google Play](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/google_play.png?raw=true)](https://play.google.com/store/apps/details?id=com.thirtydegreesray.openhub)
-[![Coolapk](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/coolapk.png?raw=true)](https://www.coolapk.com/apk/com.thirtydegreesray.openhub)
+A fast, concise **open-source** GitHub Android client. OpenHubX is a modernized fork of
+[OpenHub](https://github.com/ThirtyDegreesRay/OpenHub) by dvstdev, distributed via GitHub
+releases only (not on Google Play or CoolApk).
 
 ## Features
 
@@ -67,15 +63,72 @@ An **open-source** GitHub Android client app, faster and concise.
 ### And more
 * OpenHub is growing, and trying to be a better GitHub client.
 
-## Screenshots
+## Building & Debugging
 
-| News | Drawer | Profile |
-|:-:|:-:|:-:|
-| ![news](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/news.png?raw=true) | ![drawer](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/drawer.png?raw=true) | ![profile](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/profile.png?raw=true) |
+> This fork (**OpenHubX**) builds with the Brazil-free stock Gradle toolchain. It targets
+> the legacy support library (pre-AndroidX) and older annotation processors, so the JDK
+> version matters.
 
-| Repository | Commit | Code |
-|:-:|:-:|:-:|
-| ![repo](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/repo.png?raw=true) | ![commit](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/commit.png?raw=true) | ![code](https://raw.githubusercontent.com/ThirtyDegreesRay/OpenHub/master/art/code.png?raw=true) |
+### Prerequisites
+- **JDK 11** (required). Newer JDKs (16+/17) break the Butterknife 8.7 annotation
+  processor with `module jdk.compiler does not export com.sun.tools.javac.tree`.
+- Android SDK with `build-tools 29.0.3`, `platform-29`, `platform-tools`.
+- A `local.properties` at the repo root:
+  ```properties
+  sdk.dir=/path/to/android-sdk
+  # OAuth (register an app at https://github.com/settings/developers)
+  openhub_client_id=YOUR_CLIENT_ID
+  openhub_client_secret=YOUR_CLIENT_SECRET
+  # Release signing (optional; only needed for assembleRelease)
+  sign_path=/path/to/release.jks
+  store_password=...
+  key_alias=...
+  key_password=...
+  ```
+
+### Build (debug)
+```bash
+export ANDROID_HOME=/path/to/android-sdk
+export JAVA_HOME=/path/to/jdk-11
+
+./gradlew assembleNormalDebug
+```
+On hosts where the Gradle file watcher fails (kernel `ENOSYS`), disable it:
+```bash
+./gradlew assembleNormalDebug --no-daemon --no-watch-fs -Dorg.gradle.vfs.watch=false
+```
+The debug APK lands in `app/build/outputs/apk/normal/debug/`.
+
+### Build variants
+Two product flavors: **normal** and **fullName** — each with `debug` / `release`.
+```bash
+./gradlew assembleNormalDebug        # normal debug
+./gradlew assembleNormalRelease      # normal signed release
+./gradlew assembleFullnameRelease    # fullName signed release
+```
+
+### Run tests / lint
+```bash
+./gradlew testNormalDebugUnitTest    # JUnit unit tests
+```
+
+### Install & debug on a device/emulator
+```bash
+adb install -r app/build/outputs/apk/normal/debug/app-normal-debug.apk
+# stream crash logs:
+adb logcat -b crash
+# or filter by the app tag:
+adb logcat | grep -i OpenHub_Logger
+```
+Uninstall/reinstall if switching between debug and release signatures:
+```bash
+adb uninstall com.darktile.openhubx && adb install -r <apk>
+```
+
+### Notes
+- Some original dependencies were published only to the now-defunct jcenter; the build
+  resolves them via a Maven mirror plus `mavenCentral()` / `google()`.
+- `javax.annotation-api:1.3.2` is included so Dagger 2.11 / Glide codegen works on JDK 9+.
 
 ## Thanks for open source
 

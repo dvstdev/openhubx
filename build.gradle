@@ -1,18 +1,26 @@
 
 buildscript {
     repositories {
-        jcenter()
         google()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
-        classpath 'com.novoda:gradle-build-properties-plugin:0.3'
+        classpath 'com.android.tools.build:gradle:9.2.0'
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
+        // jcenter-only artifacts (jcenter shut down), vendored in-repo. See third_party/README.md.
+        maven {
+            url rootProject.file('third_party/maven')
+            content {
+                includeGroupByRegex 'com\\.zzhoujay(\\..*)?'
+            }
+        }
+        maven { url 'https://jitpack.io' }
     }
 }
 

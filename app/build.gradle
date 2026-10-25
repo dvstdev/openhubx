@@ -1,32 +1,38 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.novoda.build-properties'
 
-buildProperties {
-    getPublic {
-        file rootProject.file('public.properties')
-    }
-    getLocal {
-        file rootProject.file('local.properties')
-    }
-}
+// Replaces the discontinued com.novoda.build-properties plugin (was jcenter-only).
+// Loads public.properties as the base and local.properties as an optional override,
+// mirroring the plugin's "local wins, else public" lookup.
+def buildProps = new Properties()
+def publicPropsFile = rootProject.file('public.properties')
+if (publicPropsFile.exists()) { publicPropsFile.withInputStream { buildProps.load(it) } }
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) { localPropsFile.withInputStream { buildProps.load(it) } }
+def buildConfigProp = { String key -> (buildProps.getProperty(key) ?: '""').trim() }
+def signingProp = { String key, String fallback -> (buildProps.getProperty(key) ?: fallback).trim() }
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION as int
     buildToolsVersion BUILD_TOOLS_VERSION
+    namespace "com.darktile.openhubx"
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+        resValues true
+    }
     defaultConfig {
-        applicationId "com.thirtydegreesray.openhub"
+        applicationId "com.darktile.openhubx"
         minSdkVersion MIN_SDK_VERSION as int
         targetSdkVersion TARGET_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        multiDexEnabled false
+        multiDexEnabled true
 
-        buildConfigField "String", "OPENHUB_CLIENT_ID", (buildProperties.getLocal['openhub_client_id'] | buildProperties.getPublic['openhub_client_id']).string
-        buildConfigField "String", "OPENHUB_CLIENT_SECRET", (buildProperties.getLocal['openhub_client_secret'] | buildProperties.getPublic['openhub_client_secret']).string
-        buildConfigField "String", "BUGLY_ID", (buildProperties.getLocal['bugly_appid'] | buildProperties.getPublic['bugly_appid']).string
-        buildConfigField "String", "DEBUG_BUGLY_ID", (buildProperties.getLocal['debug_bugly_appid'] | buildProperties.getPublic['debug_bugly_appid']).string
+        buildConfigField "String", "OPENHUB_CLIENT_ID", buildConfigProp('openhub_client_id')
+        buildConfigField "String", "OPENHUB_CLIENT_SECRET", buildConfigProp('openhub_client_secret')
+        buildConfigField "String", "BUGLY_ID", buildConfigProp('bugly_appid')
+        buildConfigField "String", "DEBUG_BUGLY_ID", buildConfigProp('debug_bugly_appid')
 
         ndk {
 //            abiFilters 'armeabi', 'armeabi-v7a', 'x86'
@@ -36,17 +42,17 @@ android {
 
     signingConfigs  {
         release {
-            storeFile(file((buildProperties.getLocal['sign_path'] | buildProperties.getPublic['sign_path']).string))
-            storePassword((buildProperties.getLocal['store_password'] | buildProperties.getPublic['store_password']).string)
-            keyAlias((buildProperties.getLocal['key_alias'] | buildProperties.getPublic['key_alias']).string)
-            keyPassword((buildProperties.getLocal['key_password'] | buildProperties.getPublic['key_password']).string)
+            storeFile(file(signingProp('sign_path', 'OpenHubPublicSign.jks')))
+            storePassword(signingProp('store_password', 'OpenHub'))
+            keyAlias(signingProp('key_alias', 'Public'))
+            keyPassword(signingProp('key_password', 'OpenHub'))
         }
     }
 
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
@@ -55,8 +61,9 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+        coreLibraryDesugaringEnabled true
     }
 
     lintOptions {
@@ -72,12 +79,12 @@ android {
         normal {
             dimension "default"
             // add app_name int string.xml
-            resValue "string", "app_name", "OpenHub"
+            resValue "string", "app_name", "OpenHubX"
         }
         fullName {
             dimension "default"
             // add app_name int string.xml
-            resValue "string", "app_name", "OpenHub for GitHub"
+            resValue "string", "app_name", "OpenHubX for GitHub"
         }
     }
 
@@ -97,58 +104,60 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testImplementation 'junit:junit:4.12'
+
+    // Core library desugaring: backports java.time/java.util.stream etc. so Java 21
+    // language-level APIs run on the app's minSdk. Required by coreLibraryDesugaringEnabled.
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    testImplementation 'junit:junit:4.13.2'
 
 //    compile "com.android.support:support-annotations:${ANDROID_SUPPORT_VERSION}"
 
-    implementation "com.android.support:support-v4:${ANDROID_SUPPORT_VERSION}"
-//    compile "com.android.support:support-v13:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:appcompat-v7:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:recyclerview-v7:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:design:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:cardview-v7:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:support-vector-drawable:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:preference-v7:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:preference-v14:${ANDROID_SUPPORT_VERSION}"
-    implementation "com.android.support:customtabs:${ANDROID_SUPPORT_VERSION}"
+    // AndroidX (migrated from com.android.support ${ANDROID_SUPPORT_VERSION}).
+    // vectordrawable is subsumed by appcompat; preference-v14 folded into androidx.preference.
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.recyclerview:recyclerview:1.3.2"
+    implementation "com.google.android.material:material:1.11.0"
+    implementation "androidx.cardview:cardview:1.0.0"
+    implementation "androidx.preference:preference:1.2.1"
+    implementation "androidx.browser:browser:1.7.0"
 
-    implementation "com.android.support.constraint:constraint-layout:${CONSTRAINT_VERSION}"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
 //    compile "com.android.support:multidex:${MULTIDEX_VERSION}"
 
-    implementation "com.thirtydegreesray:dataautoaccess:${DATAAUTOACCESS_VERSION}"
-    annotationProcessor "com.thirtydegreesray:dataautoaccess-compiler:${DATAAUTOACCESS_VERSION}"
+    implementation project(':dataautoaccess')
+    annotationProcessor project(':dataautoaccess-compiler')
 
-    implementation "com.jakewharton:butterknife:${BUTTERKNIFE_VERSION}"
-    annotationProcessor "com.jakewharton:butterknife-compiler:${BUTTERKNIFE_VERSION}"
-
-    //数据库工具
-    implementation "org.greenrobot:greendao:${GREEN_DAO_VERSION}"
+    // Room (greenDAO replacement, P2c). greenDAO fully removed; DAOs are Room @Dao interfaces.
+    implementation "androidx.room:room-runtime:2.6.1"
+    annotationProcessor "androidx.room:room-compiler:2.6.1"
     //事件总线
     implementation "org.greenrobot:eventbus:${EVENT_BUS_VERSION}"
     //文件下载
 
-    //RxJava
-    implementation "io.reactivex:rxjava:${RXJAVA_VERSION}"
-    implementation "io.reactivex:rxandroid:${RXJAVA_VERSION}"
+    //RxJava 3 (io.reactivex.rxjava3)
+    implementation "io.reactivex.rxjava3:rxjava:${RXJAVA_VERSION}"
+    implementation "io.reactivex.rxjava3:rxandroid:${RXANDROID_VERSION}"
+
+    // Runtime permissions on RxJava 3 (0.12 = RxJava3 migration release; package com.tbruyelle.rxpermissions3).
+    // jitpack artifactId is case-sensitive and matches the GitHub repo name (RxPermissions); lowercase does not resolve.
+    implementation "com.github.tbruyelle:RxPermissions:${RX_PERMISSION_VERSION}"
 
     //Type-safe HTTP client for Android and Java by Square, Inc.
     implementation "com.squareup.retrofit2:retrofit:${RETROFIT_VERSION}"
     implementation "com.squareup.retrofit2:converter-gson:${RETROFIT_VERSION}"
-    implementation "com.squareup.retrofit2:adapter-rxjava:${RETROFIT_VERSION}"
-    implementation ("com.squareup.retrofit2:converter-simplexml:${RETROFIT_VERSION}"){
-        exclude group: 'xpp3', module: 'xpp3'
-        exclude group: 'stax', module: 'stax-api'
-        exclude group: 'stax', module: 'stax'
-    }
+    implementation "com.squareup.retrofit2:adapter-rxjava3:${RETROFIT_VERSION}"
+    // converter-simplexml dropped: XML deserialization path removed in the RxJava 3 modernization.
 
     //dagger依赖注入
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     annotationProcessor "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
 
-    implementation "com.tbruyelle.rxpermissions:rxpermissions:${RX_PERMISSION_VERSION}"
+    // JDK 9+ removed javax.annotation.Generated; Dagger/Glide generated code references it.
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+    annotationProcessor 'javax.annotation:javax.annotation-api:1.3.2'
+
 
     implementation "com.github.bumptech.glide:glide:${GLIDE_VERSION}"
     annotationProcessor "com.github.bumptech.glide:compiler:${GLIDE_VERSION}"
@@ -158,16 +167,20 @@ dependencies {
 
     implementation "com.github.GrenderG:Toasty:${TOASTY_VERSION}"
     implementation "com.github.daniel-stoneuk:material-about-library:${MATERIAL_ABOUT_VERSION}"
-    implementation "com.unstoppable:submitbutton:${SUBMIT_BUTTON_VERSION}"
 
-    implementation "com.afollestad.material-dialogs:core:${MATERIAL_DIALOG_VERSION}"
-    implementation "com.afollestad.material-dialogs:commons:${MATERIAL_DIALOG_VERSION}"
-
-    implementation "com.zzhoujay.richtext:richtext:${RICKTEXT_VERSION}"
-    implementation 'com.zzhoujay.glideimagegetter:glideimagegetter:1.0.5'
+    // richtext 3.0.4 over-declares com.android.support:support-v4 in its POM but its
+    // bytecode references neither support nor androidx; drop it so it doesn't collide
+    // with the androidx.* artifacts (Jetifier stays off through the AGP 9 bump).
+    implementation ("com.zzhoujay.richtext:richtext:${RICKTEXT_VERSION}") {
+        exclude group: 'com.android.support'
+    }
 
     implementation "com.orhanobut:logger:${LOGGER_VERSION}"
-    implementation "com.timehop.stickyheadersrecyclerview:library:${STICKY_HEAD_VERSION}"
 
     implementation "org.jsoup:jsoup:${JSOUP_VERSION}"
+
+    // ZXing embedded barcode/QR scanner (Phase 5.0 QR-code login). In-app CaptureActivity;
+    // no ML Kit, no system-camera deep-link.
+    implementation "com.journeyapps:zxing-android-embedded:4.3.0"
 }
+

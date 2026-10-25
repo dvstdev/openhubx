@@ -1,0 +1,947 @@
+diff --git a/app/build.gradle b/app/build.gradle
+index 4829063..78cb5e8 100644
+--- a/app/build.gradle
++++ b/app/build.gradle
+@@ -133,19 +133,15 @@ dependencies {
+     implementation "org.greenrobot:eventbus:${EVENT_BUS_VERSION}"
+     //文件下载
+ 
+-    //RxJava
+-    implementation "io.reactivex:rxjava:${RXJAVA_VERSION}"
+-    implementation "io.reactivex:rxandroid:${RXJAVA_VERSION}"
++    //RxJava 3 (io.reactivex.rxjava3)
++    implementation "io.reactivex.rxjava3:rxjava:${RXJAVA_VERSION}"
++    implementation "io.reactivex.rxjava3:rxandroid:${RXANDROID_VERSION}"
+ 
+     //Type-safe HTTP client for Android and Java by Square, Inc.
+     implementation "com.squareup.retrofit2:retrofit:${RETROFIT_VERSION}"
+     implementation "com.squareup.retrofit2:converter-gson:${RETROFIT_VERSION}"
+-    implementation "com.squareup.retrofit2:adapter-rxjava:${RETROFIT_VERSION}"
+-    implementation ("com.squareup.retrofit2:converter-simplexml:${RETROFIT_VERSION}"){
+-        exclude group: 'xpp3', module: 'xpp3'
+-        exclude group: 'stax', module: 'stax-api'
+-        exclude group: 'stax', module: 'stax'
+-    }
++    implementation "com.squareup.retrofit2:adapter-rxjava3:${RETROFIT_VERSION}"
++    // converter-simplexml dropped: XML deserialization path removed in the RxJava 3 modernization.
+ 
+     //dagger依赖注入
+     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
+@@ -155,7 +151,6 @@ dependencies {
+     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+     annotationProcessor 'javax.annotation:javax.annotation-api:1.3.2'
+ 
+-    implementation "com.tbruyelle.rxpermissions:rxpermissions:${RX_PERMISSION_VERSION}"
+ 
+     implementation "com.github.bumptech.glide:glide:${GLIDE_VERSION}"
+     annotationProcessor "com.github.bumptech.glide:compiler:${GLIDE_VERSION}"
+diff --git a/app/src/main/java/com/darktile/openhubx/dao/DaoSession.java b/app/src/main/java/com/darktile/openhubx/dao/DaoSession.java
+index df8b455..a04ed9b 100644
+--- a/app/src/main/java/com/darktile/openhubx/dao/DaoSession.java
++++ b/app/src/main/java/com/darktile/openhubx/dao/DaoSession.java
+@@ -2,8 +2,8 @@ package com.darktile.openhubx.dao;
+ 
+ import java.util.concurrent.Callable;
+ 
+-import rx.Observable;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Room-backed replacement for greenDAO's generated DaoSession. Keeps the same
+@@ -78,12 +78,13 @@ public class DaoSession {
+             this.db = db;
+         }
+ 
+-        public Observable<Void> run(final Runnable runnable) {
+-            return Observable.fromCallable(new Callable<Void>() {
++        public Observable<Object> run(final Runnable runnable) {
++            return Observable.fromCallable(new Callable<Object>() {
+                 @Override
+-                public Void call() {
++                public Object call() {
+                     db.runInTransaction(runnable);
+-                    return null;
++                    // RxJava 3 disallows null emissions; emit a non-null sentinel.
++                    return Boolean.TRUE;
+                 }
+             }).subscribeOn(Schedulers.io());
+         }
+diff --git a/app/src/main/java/com/darktile/openhubx/http/CommitService.java b/app/src/main/java/com/darktile/openhubx/http/CommitService.java
+index 6b759df..2922c1d 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/CommitService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/CommitService.java
+@@ -15,7 +15,7 @@ import retrofit2.http.GET;
+ import retrofit2.http.Header;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/10/17 13:13:33
+diff --git a/app/src/main/java/com/darktile/openhubx/http/Downloader.java b/app/src/main/java/com/darktile/openhubx/http/Downloader.java
+index 7216619..3b34369 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/Downloader.java
++++ b/app/src/main/java/com/darktile/openhubx/http/Downloader.java
+@@ -13,7 +13,7 @@ import android.os.Environment;
+ import android.widget.Toast;
+ 
+ import com.orhanobut.logger.Logger;
+-import com.tbruyelle.rxpermissions.RxPermissions;
++import com.darktile.openhubx.util.RxPermissions;
+ import com.darktile.openhubx.R;
+ import com.darktile.openhubx.ui.activity.base.BaseActivity;
+ import com.darktile.openhubx.util.AppUtils;
+diff --git a/app/src/main/java/com/darktile/openhubx/http/GitHubWebPageService.java b/app/src/main/java/com/darktile/openhubx/http/GitHubWebPageService.java
+index cf646c7..bf1f87c 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/GitHubWebPageService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/GitHubWebPageService.java
+@@ -2,8 +2,6 @@ package com.darktile.openhubx.http;
+ 
+ import androidx.annotation.NonNull;
+ 
+-import com.darktile.openhubx.mvp.model.WikiFeedModel;
+-
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+ import retrofit2.http.GET;
+@@ -11,7 +9,7 @@ import retrofit2.http.Header;
+ import retrofit2.http.Headers;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/12/25 15:30:56
+@@ -20,7 +18,7 @@ import rx.Observable;
+ public interface GitHubWebPageService {
+ 
+     @NonNull @GET("{owner}/{repo}/wiki.atom")
+-    Observable<Response<WikiFeedModel>> getWiki(
++    Observable<Response<ResponseBody>> getWiki(
+             @Header("forceNetWork") boolean forceNetWork,
+             @Path("owner") String owner,
+             @Path("repo") String repo
+diff --git a/app/src/main/java/com/darktile/openhubx/http/IssueService.java b/app/src/main/java/com/darktile/openhubx/http/IssueService.java
+index b739b9c..e503da3 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/IssueService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/IssueService.java
+@@ -23,7 +23,7 @@ import retrofit2.http.PATCH;
+ import retrofit2.http.POST;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/20 14:28:30
+diff --git a/app/src/main/java/com/darktile/openhubx/http/LoginService.java b/app/src/main/java/com/darktile/openhubx/http/LoginService.java
+index d02548f..6323b74 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/LoginService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/LoginService.java
+@@ -13,7 +13,7 @@ import retrofit2.http.Body;
+ import retrofit2.http.Headers;
+ import retrofit2.http.POST;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/8/1.
+diff --git a/app/src/main/java/com/darktile/openhubx/http/NotificationsService.java b/app/src/main/java/com/darktile/openhubx/http/NotificationsService.java
+index eac1d41..e3eb100 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/NotificationsService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/NotificationsService.java
+@@ -18,7 +18,7 @@ import retrofit2.http.PATCH;
+ import retrofit2.http.PUT;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/11/6 21:03:04
+diff --git a/app/src/main/java/com/darktile/openhubx/http/OpenHubService.java b/app/src/main/java/com/darktile/openhubx/http/OpenHubService.java
+index 99ef145..d6322cc 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/OpenHubService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/OpenHubService.java
+@@ -13,7 +13,7 @@ import retrofit2.Response;
+ import retrofit2.http.GET;
+ import retrofit2.http.Headers;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * This link are for OpenHub only. Please do not use this endpoint in your applications.
+diff --git a/app/src/main/java/com/darktile/openhubx/http/RepoService.java b/app/src/main/java/com/darktile/openhubx/http/RepoService.java
+index 55aa573..c3005ca 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/RepoService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/RepoService.java
+@@ -24,7 +24,7 @@ import retrofit2.http.PUT;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+ import retrofit2.http.Url;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/8/1.
+diff --git a/app/src/main/java/com/darktile/openhubx/http/SearchService.java b/app/src/main/java/com/darktile/openhubx/http/SearchService.java
+index 6b6e30a..5fc00e4 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/SearchService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/SearchService.java
+@@ -14,7 +14,7 @@ import retrofit2.http.GET;
+ import retrofit2.http.Header;
+ import retrofit2.http.Headers;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/25 13:52:09
+diff --git a/app/src/main/java/com/darktile/openhubx/http/UserService.java b/app/src/main/java/com/darktile/openhubx/http/UserService.java
+index dfab6b0..acccb03 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/UserService.java
++++ b/app/src/main/java/com/darktile/openhubx/http/UserService.java
+@@ -17,7 +17,7 @@ import retrofit2.http.Header;
+ import retrofit2.http.PUT;
+ import retrofit2.http.Path;
+ import retrofit2.http.Query;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/8/1.
+diff --git a/app/src/main/java/com/darktile/openhubx/http/core/AppRetrofit.java b/app/src/main/java/com/darktile/openhubx/http/core/AppRetrofit.java
+index 278ef19..2842821 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/core/AppRetrofit.java
++++ b/app/src/main/java/com/darktile/openhubx/http/core/AppRetrofit.java
+@@ -30,9 +30,8 @@ import okhttp3.OkHttpClient;
+ import okhttp3.Request;
+ import okhttp3.Response;
+ import retrofit2.Retrofit;
+-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
++import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
+ import retrofit2.converter.gson.GsonConverterFactory;
+-import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
+ 
+ /**
+  * Retrofit 网络请求
+@@ -60,13 +59,13 @@ public enum  AppRetrofit {
+ 
+         Retrofit.Builder builder = new Retrofit.Builder()
+                 .baseUrl(baseUrl)
+-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
++                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                 .client(okHttpClient);
+ 
+         if(isJson){
+             builder.addConverterFactory(GsonConverterFactory.create());
+         } else {
+-            builder.addConverterFactory(SimpleXmlConverterFactory.createNonStrict());
++            builder.addConverterFactory(GsonConverterFactory.create());
+         }
+ 
+         retrofitMap.put(baseUrl + "-" + isJson, builder.build());
+diff --git a/app/src/main/java/com/darktile/openhubx/http/core/HttpProgressSubscriber.java b/app/src/main/java/com/darktile/openhubx/http/core/HttpProgressSubscriber.java
+index 843ffad..6182a80 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/core/HttpProgressSubscriber.java
++++ b/app/src/main/java/com/darktile/openhubx/http/core/HttpProgressSubscriber.java
+@@ -22,15 +22,15 @@ public class HttpProgressSubscriber<T> extends HttpSubscriber<T> {
+     }
+ 
+     @Override
+-    public void onStart() {
++    protected void onStart() {
+         super.onStart();
+-        if (!isUnsubscribed())
++        if (!isDisposed())
+             mDialog.show();
+     }
+ 
+     @Override
+-    public void onCompleted() {
+-        super.onCompleted();
++    public void onComplete() {
++        super.onComplete();
+         mDialog.dismiss();
+     }
+ 
+diff --git a/app/src/main/java/com/darktile/openhubx/http/core/HttpSubscriber.java b/app/src/main/java/com/darktile/openhubx/http/core/HttpSubscriber.java
+index e779450..c4a69cb 100644
+--- a/app/src/main/java/com/darktile/openhubx/http/core/HttpSubscriber.java
++++ b/app/src/main/java/com/darktile/openhubx/http/core/HttpSubscriber.java
+@@ -2,14 +2,14 @@
+ 
+ package com.darktile.openhubx.http.core;
+ 
++import io.reactivex.rxjava3.observers.DisposableObserver;
+ import retrofit2.Response;
+-import rx.Subscriber;
+ 
+ /**
+  * 网络请求订阅者，处理网络请求的返回，判断数据有效性，同时处理网络请求异常情况<br>
+  * Created by ThirtyDegreesRay on 2016/7/15 11:19
+  */
+-public class HttpSubscriber<T> extends Subscriber<Response<T>> {
++public class HttpSubscriber<T> extends DisposableObserver<Response<T>> {
+ 
+     private HttpObserver<T> mObserver;
+ 
+@@ -21,7 +21,7 @@ public class HttpSubscriber<T> extends Subscriber<Response<T>> {
+     }
+ 
+     @Override
+-    public void onCompleted() {
++    public void onComplete() {
+ 
+     }
+ 
+@@ -38,7 +38,7 @@ public class HttpSubscriber<T> extends Subscriber<Response<T>> {
+     }
+ 
+     @Override
+-    public void onStart() {
++    protected void onStart() {
+         super.onStart();
+     }
+ }
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/model/WikiFeedModel.java b/app/src/main/java/com/darktile/openhubx/mvp/model/WikiFeedModel.java
+index 7e9e8bd..7bcae5f 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/model/WikiFeedModel.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/model/WikiFeedModel.java
+@@ -1,21 +1,26 @@
+ package com.darktile.openhubx.mvp.model;
+ 
+-import org.simpleframework.xml.Element;
+-import org.simpleframework.xml.ElementList;
+-import org.simpleframework.xml.Root;
++import android.util.Xml;
+ 
++import org.xmlpull.v1.XmlPullParser;
++import org.xmlpull.v1.XmlPullParserException;
++
++import java.io.IOException;
++import java.io.StringReader;
+ import java.util.ArrayList;
+ 
+ /**
++ * Wiki atom feed model. Previously deserialized via SimpleXML; the SimpleXML
++ * converter was dropped in the RxJava 3 modernization, so the atom feed is now
++ * parsed manually from the raw response with the platform XmlPullParser.
+  * Created by ThirtyDegreesRay on 2017/12/7 10:01:39
+  */
+-@Root(name = "feed")
+ public class WikiFeedModel {
+ 
+-    @Element(name = "id") private String id;
+-    @Element(name = "title") private String title;
+-    @Element(name = "updated") private String updated;
+-    @ElementList(inline = true) private ArrayList<WikiModel> wikiList;
++    private String id;
++    private String title;
++    private String updated;
++    private ArrayList<WikiModel> wikiList;
+ 
+     public String getId() {
+         return id;
+@@ -49,4 +54,70 @@ public class WikiFeedModel {
+         this.wikiList = wikiList;
+     }
+ 
++    /**
++     * Parse a GitHub wiki atom feed. Reads the feed-level id/title/updated and
++     * every &lt;entry&gt; into a {@link WikiModel}.
++     *
++     * @param xml raw atom feed body
++     * @return populated feed model
++     * @throws XmlPullParserException on malformed XML
++     * @throws IOException on read failure
++     */
++    public static WikiFeedModel fromAtom(String xml) throws XmlPullParserException, IOException {
++        WikiFeedModel feed = new WikiFeedModel();
++        ArrayList<WikiModel> entries = new ArrayList<>();
++        feed.setWikiList(entries);
++
++        XmlPullParser parser = Xml.newPullParser();
++        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
++        parser.setInput(new StringReader(xml));
++
++        WikiModel current = null;
++        boolean inEntry = false;
++        int event = parser.getEventType();
++        while (event != XmlPullParser.END_DOCUMENT) {
++            String name = parser.getName();
++            if (event == XmlPullParser.START_TAG) {
++                if ("entry".equals(name)) {
++                    inEntry = true;
++                    current = new WikiModel();
++                } else if ("id".equals(name)) {
++                    String text = parser.nextText();
++                    if (inEntry && current != null) {
++                        current.setId(text);
++                    } else if (feed.getId() == null) {
++                        feed.setId(text);
++                    }
++                } else if ("title".equals(name)) {
++                    if (!inEntry && feed.getTitle() == null) {
++                        feed.setTitle(parser.nextText());
++                    }
++                } else if ("updated".equals(name)) {
++                    String text = parser.nextText();
++                    if (inEntry && current != null) {
++                        current.setUpdated(text);
++                    } else if (feed.getUpdated() == null) {
++                        feed.setUpdated(text);
++                    }
++                } else if ("published".equals(name)) {
++                    if (inEntry && current != null) {
++                        current.setPublished(parser.nextText());
++                    }
++                } else if ("content".equals(name)) {
++                    if (inEntry && current != null) {
++                        current.setContent(parser.nextText());
++                    }
++                }
++            } else if (event == XmlPullParser.END_TAG && "entry".equals(name)) {
++                if (current != null) {
++                    entries.add(current);
++                }
++                inEntry = false;
++                current = null;
++            }
++            event = parser.next();
++        }
++        return feed;
++    }
++
+ }
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/model/WikiModel.java b/app/src/main/java/com/darktile/openhubx/mvp/model/WikiModel.java
+index 0e18147..8c1de4a 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/model/WikiModel.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/model/WikiModel.java
+@@ -3,9 +3,6 @@ package com.darktile.openhubx.mvp.model;
+ import android.os.Parcel;
+ import android.os.Parcelable;
+ 
+-import org.simpleframework.xml.Element;
+-import org.simpleframework.xml.Root;
+-
+ import java.io.UnsupportedEncodingException;
+ import java.net.URLDecoder;
+ 
+@@ -13,13 +10,12 @@ import java.net.URLDecoder;
+  * Created by ThirtyDegreesRay on 2017/12/6 15:59:31
+  */
+ 
+-@Root(name = "entry")
+ public class WikiModel implements Parcelable {
+ 
+-    @Element(name = "id") private String id;
+-    @Element(name = "published") private String published;
+-    @Element(name = "updated") private String updated;
+-    @Element(name = "content") private String content;
++    private String id;
++    private String published;
++    private String updated;
++    private String content;
+     private String simpleTextContent;
+ 
+     public String getId() {
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ActivityPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ActivityPresenter.java
+index 6244932..a321fbf 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ActivityPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ActivityPresenter.java
+@@ -22,7 +22,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/23 21:53:51
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/BookmarkPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/BookmarkPresenter.java
+index 6542e5b..20391cf 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/BookmarkPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/BookmarkPresenter.java
+@@ -16,7 +16,7 @@ import java.util.List;
+ 
+ import javax.inject.Inject;
+ 
+-import rx.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/11/22 15:59:45
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CollectionsPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CollectionsPresenter.java
+index 104e9f9..6f7589f 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CollectionsPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CollectionsPresenter.java
+@@ -22,9 +22,9 @@ import java.util.List;
+ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+-import rx.Observable;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/12/25 15:16:34
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitDetailPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitDetailPresenter.java
+index 5d63a48..8f590a7 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitDetailPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitDetailPresenter.java
+@@ -20,7 +20,7 @@ import com.darktile.openhubx.util.StringUtils;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/10/18 11:31:06
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitsPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitsPresenter.java
+index 122da43..fad6138 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitsPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/CommitsPresenter.java
+@@ -21,7 +21,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/10/17 14:29:17
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/EditIssuePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/EditIssuePresenter.java
+index f9d82aa..bbba436 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/EditIssuePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/EditIssuePresenter.java
+@@ -19,7 +19,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/10/14 16:49:20
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueDetailPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueDetailPresenter.java
+index ea29bd3..92a7b78 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueDetailPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueDetailPresenter.java
+@@ -20,7 +20,7 @@ import com.darktile.openhubx.util.StringUtils;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/26 16:53:52
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssuePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssuePresenter.java
+index 703b662..d1564de 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssuePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssuePresenter.java
+@@ -18,7 +18,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/20 14:56:49
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueTimelinePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueTimelinePresenter.java
+index 23c8e64..d15e652 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueTimelinePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/IssueTimelinePresenter.java
+@@ -19,7 +19,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/27 11:54:43
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/LanguagesEditorPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/LanguagesEditorPresenter.java
+index 8ad7164..6814740 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/LanguagesEditorPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/LanguagesEditorPresenter.java
+@@ -27,9 +27,9 @@ import java.util.List;
+ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+-import rx.Observable;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/11/28 17:23:17
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/LoginPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/LoginPresenter.java
+index 7a3d884..651cea8 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/LoginPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/LoginPresenter.java
+@@ -29,7 +29,7 @@ import javax.inject.Inject;
+ 
+ import okhttp3.Credentials;
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/7/12.
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/NotificationsPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/NotificationsPresenter.java
+index 8869f6d..0597554 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/NotificationsPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/NotificationsPresenter.java
+@@ -25,7 +25,7 @@ import java.util.Map;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/11/6 20:52:55
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfileInfoPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfileInfoPresenter.java
+index 3abc54b..2ce9d03 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfileInfoPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfileInfoPresenter.java
+@@ -15,7 +15,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/23 14:37:51
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfilePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfilePresenter.java
+index 483251f..f58b809 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfilePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ProfilePresenter.java
+@@ -24,7 +24,7 @@ import java.util.UUID;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/7/18.
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleaseInfoPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleaseInfoPresenter.java
+index 29b5dfc..e901a0a 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleaseInfoPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleaseInfoPresenter.java
+@@ -11,7 +11,7 @@ import com.darktile.openhubx.mvp.presenter.base.BasePresenter;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/16 13:11:46
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleasesPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleasesPresenter.java
+index 9e11a94..0087cfb 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleasesPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ReleasesPresenter.java
+@@ -13,7 +13,7 @@ import java.util.ArrayList;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/9/16 11:31:07
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoFilesPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoFilesPresenter.java
+index 7a6a640..985105e 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoFilesPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoFilesPresenter.java
+@@ -25,7 +25,7 @@ import java.util.Map;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/14 16:06:30
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoInfoPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoInfoPresenter.java
+index 20211f2..74c85a9 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoInfoPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepoInfoPresenter.java
+@@ -19,7 +19,7 @@ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/11 11:34:31
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoriesPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoriesPresenter.java
+index a8da02c..bf2ef2f 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoriesPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoriesPresenter.java
+@@ -47,9 +47,9 @@ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+-import rx.Observable;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Created on 2017/7/18.
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoryPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoryPresenter.java
+index 1a78de5..b562be0 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoryPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/RepositoryPresenter.java
+@@ -29,8 +29,8 @@ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+-import rx.Observable;
+-import rx.functions.Func1;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.functions.Function;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/9 21:42:47
+@@ -99,9 +99,9 @@ public class RepositoryPresenter extends BasePresenter<IRepositoryContract.View>
+                         }
+                 );
+         Observable<Response<ArrayList<Branch>>> observable = getRepoService().getBranches(owner, repoName)
+-                .flatMap(new Func1<Response<ArrayList<Branch>>, Observable<Response<ArrayList<Branch>>>>() {
++                .flatMap(new Function<Response<ArrayList<Branch>>, Observable<Response<ArrayList<Branch>>>>() {
+                     @Override
+-                    public Observable<Response<ArrayList<Branch>>> call(
++                    public Observable<Response<ArrayList<Branch>>> apply(
+                             Response<ArrayList<Branch>> arrayListResponse) {
+                         branches = arrayListResponse.body();
+                         return getRepoService().getTags(owner, repoName);
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/SplashPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/SplashPresenter.java
+index 24bdc35..6b4b9d0 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/SplashPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/SplashPresenter.java
+@@ -20,7 +20,7 @@ import java.util.List;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created on 2017/7/12.
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/TopicsPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/TopicsPresenter.java
+index 17be5ba..49af0a2 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/TopicsPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/TopicsPresenter.java
+@@ -21,9 +21,9 @@ import java.util.HashSet;
+ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+-import rx.Observable;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/12/29 11:10:27
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/TracePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/TracePresenter.java
+index e7d7499..bffdf94 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/TracePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/TracePresenter.java
+@@ -16,7 +16,7 @@ import java.util.List;
+ 
+ import javax.inject.Inject;
+ 
+-import rx.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/11/23 10:55:30
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/UserListPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/UserListPresenter.java
+index cb447e3..71ad790 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/UserListPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/UserListPresenter.java
+@@ -28,7 +28,7 @@ import java.util.List;
+ import javax.inject.Inject;
+ 
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/16 17:38:43
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ViewerPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ViewerPresenter.java
+index fed21c2..3c3dfc7 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/ViewerPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/ViewerPresenter.java
+@@ -21,7 +21,7 @@ import javax.inject.Inject;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+-import rx.Observable;
++import io.reactivex.rxjava3.core.Observable;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2017/8/19 15:58:43
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/WikiPresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/WikiPresenter.java
+index 6b5b32a..21d8062 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/WikiPresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/WikiPresenter.java
+@@ -11,10 +11,13 @@ import com.darktile.openhubx.mvp.presenter.base.BasePresenter;
+ 
+ import org.xmlpull.v1.XmlPullParserException;
+ 
++import java.io.IOException;
+ import java.util.ArrayList;
+ 
+ import javax.inject.Inject;
+ 
++import okhttp3.ResponseBody;
++
+ /**
+  * Created by ThirtyDegreesRay on 2017/12/6 16:41:32
+  */
+@@ -40,7 +43,7 @@ public class WikiPresenter extends BasePresenter<IWikiContract.View>
+     @Override
+     public void loadWiki(boolean isReload) {
+         mView.showLoading();
+-        HttpObserver<WikiFeedModel> httpObserver = new HttpObserver<WikiFeedModel>() {
++        HttpObserver<ResponseBody> httpObserver = new HttpObserver<ResponseBody>() {
+             @Override
+             public void onError(Throwable error) {
+                 mView.hideLoading();
+@@ -52,10 +55,17 @@ public class WikiPresenter extends BasePresenter<IWikiContract.View>
+             }
+ 
+             @Override
+-            public void onSuccess(HttpResponse<WikiFeedModel> response) {
++            public void onSuccess(HttpResponse<ResponseBody> response) {
+                 mView.hideLoading();
+-                wikiList = response.body().getWikiList();
+-                mView.showWiki(wikiList);
++                try {
++                    WikiFeedModel feedModel = WikiFeedModel.fromAtom(response.body().string());
++                    wikiList = feedModel.getWikiList();
++                    mView.showWiki(wikiList);
++                } catch (XmlPullParserException e) {
++                    mView.showWiki(null);
++                } catch (IOException e) {
++                    mView.showLoadError(getErrorTip(e));
++                }
+             }
+         };
+         generalRxHttpExecute(forceNetWork -> getGitHubWebPageService()
+diff --git a/app/src/main/java/com/darktile/openhubx/mvp/presenter/base/BasePresenter.java b/app/src/main/java/com/darktile/openhubx/mvp/presenter/base/BasePresenter.java
+index 328e8ab..4c87541 100644
+--- a/app/src/main/java/com/darktile/openhubx/mvp/presenter/base/BasePresenter.java
++++ b/app/src/main/java/com/darktile/openhubx/mvp/presenter/base/BasePresenter.java
+@@ -51,10 +51,10 @@ import java.util.Map;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Response;
+-import rx.Observable;
+-import rx.Subscriber;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.core.Observable;
++import io.reactivex.rxjava3.observers.DisposableObserver;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ 
+ /**
+@@ -70,7 +70,7 @@ public abstract class BasePresenter<V extends IBaseContract.View> implements IBa
+     //db Dao
+     protected DaoSession daoSession;
+ 
+-    private ArrayList<Subscriber<?>> subscribers;
++    private ArrayList<DisposableObserver<?>> subscribers;
+     private boolean isEventSubscriber = false;
+     private boolean isViewInitialized = false;
+ 
+@@ -112,10 +112,10 @@ public abstract class BasePresenter<V extends IBaseContract.View> implements IBa
+     public void detachView() {
+         mView = null;
+         //view 取消绑定时，把请求取消订阅
+-        for (Subscriber subscriber : subscribers) {
+-            if (subscriber != null && !subscriber.isUnsubscribed()) {
+-                subscriber.unsubscribe();
+-                Logger.d(TAG, "unsubscribe:" + subscriber.toString());
++        for (DisposableObserver subscriber : subscribers) {
++            if (subscriber != null && !subscriber.isDisposed()) {
++                subscriber.dispose();
++                Logger.d(TAG, "dispose:" + subscriber.toString());
+             }
+         }
+         if (isEventSubscriber) AppEventBus.INSTANCE.getEventBus().unregister(this);
+diff --git a/app/src/main/java/com/darktile/openhubx/ui/widget/StarWishesDialog.java b/app/src/main/java/com/darktile/openhubx/ui/widget/StarWishesDialog.java
+index 5f967d6..483072b 100644
+--- a/app/src/main/java/com/darktile/openhubx/ui/widget/StarWishesDialog.java
++++ b/app/src/main/java/com/darktile/openhubx/ui/widget/StarWishesDialog.java
+@@ -19,8 +19,8 @@ import com.darktile.openhubx.util.StringUtils;
+ 
+ import es.dmoral.toasty.Toasty;
+ import okhttp3.ResponseBody;
+-import rx.android.schedulers.AndroidSchedulers;
+-import rx.schedulers.Schedulers;
++import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
++import io.reactivex.rxjava3.schedulers.Schedulers;
+ 
+ /**
+  * Created by ThirtyDegreesRay on 2018/2/2 13:57:48
+diff --git a/build.gradle b/build.gradle
+index 147519e..8f3ec54 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -15,7 +15,7 @@ allprojects {
+         mavenCentral()
+         // Aliyun public mirror still serves several jcenter-only artifacts that were
+         // orphaned when jcenter shut down (dataautoaccess(+compiler), submitbutton,
+-        // richtext, glideimagegetter, rxpermissions 0.9.4).
++        // richtext, glideimagegetter).
+         maven { url 'https://maven.aliyun.com/repository/public' }
+         maven { url 'https://jitpack.io' }
+     }
+diff --git a/gradle.properties b/gradle.properties
+index 414501c..329f0d0 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -40,10 +40,10 @@ MULTIDEX_VERSION = 1.0.2
+ DATAAUTOACCESS_VERSION = 1.2.8
+ EVENT_BUS_VERSION=3.3.1
+ FILE_DOWNLOADER_VERSION=0.3.1
+-RXJAVA_VERSION=1.1.0
+-RETROFIT_VERSION=2.1.0
+-DAGGER_VERSION=2.11
+-RX_PERMISSION_VERSION=0.9.4@aar
++RXJAVA_VERSION=3.1.8
++RXANDROID_VERSION=3.0.2
++RETROFIT_VERSION=2.11.0
++DAGGER_VERSION=2.51.1
+ RETROLAMBDA_VERSION=2.3.0
+ OKHTTP_VERSION=3.6.0
+ FASTJSON_VERSION=1.1.46.android

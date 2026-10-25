@@ -1,0 +1,67 @@
+
+
+package com.darktile.openhubx.ui.adapter;
+
+import android.content.Context;
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageView;
+import android.view.View;
+import android.widget.TextView;
+
+import com.darktile.openhubx.R;
+import com.darktile.openhubx.mvp.model.FilePath;
+import com.darktile.openhubx.ui.adapter.base.BaseAdapter;
+import com.darktile.openhubx.ui.adapter.base.BaseViewHolder;
+
+import javax.inject.Inject;
+/**
+ * Created by ThirtyDegreesRay on 2017/8/27 12:05:09
+ */
+
+public class FilePathAdapter extends BaseAdapter<FilePathAdapter.ViewHolder, FilePath> {
+
+    @Inject
+    public FilePathAdapter(Context context) {
+        super(context);
+    }
+
+    @Override
+    protected int getLayoutId(int viewType) {
+        return R.layout.layout_item_file_path;
+    }
+
+    @Override
+    protected ViewHolder getViewHolder(View itemView, int viewType) {
+        return new ViewHolder(itemView);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
+        String pathName = data.get(position).getName();
+        holder.arrow.setVisibility(View.VISIBLE);
+        if(pathName.equals("")){
+            holder.path.setText(".");
+        }else{
+            holder.path.setText(data.get(position).getName());
+        }
+
+    }
+
+    class ViewHolder extends BaseViewHolder {
+
+        @Override
+        protected void bindViews(android.view.View root) {
+            super.bindViews(root);
+            arrow = root.findViewById(R.id.arrow);
+            path = root.findViewById(R.id.path);
+        }
+         AppCompatImageView arrow;
+         TextView path;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+        }
+    }
+
+}

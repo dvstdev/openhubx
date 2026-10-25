@@ -1,0 +1,125 @@
+package com.darktile.openhubx.mvp.presenter;
+
+import com.darktile.openhubx.AppConfig;
+import com.darktile.openhubx.R;
+import com.darktile.openhubx.dao.DaoSession;
+import com.darktile.openhubx.http.core.HttpObserver;
+import com.darktile.openhubx.http.core.HttpResponse;
+import com.darktile.openhubx.mvp.contract.ICollectionsContract;
+import com.darktile.openhubx.mvp.model.Collection;
+import com.darktile.openhubx.mvp.presenter.base.BasePresenter;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import okhttp3.ResponseBody;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+/**
+ * Created by ThirtyDegreesRay on 2017/12/25 15:16:34
+ */
+
+public class CollectionsPresenter extends BasePresenter<ICollectionsContract.View>
+        implements ICollectionsContract.Presenter {
+
+    private ArrayList<Collection> collections;
+
+    @Inject
+    public CollectionsPresenter(DaoSession daoSession) {
+        super(daoSession);
+    }
+
+    @Override
+    public void onViewInitialized() {
+        super.onViewInitialized();
+        loadCollections(false);
+    }
+
+    @Override
+    public void loadCollections(boolean isReload) {
+        mView.showLoading();
+        HttpObserver<ResponseBody> httpObserver = new HttpObserver<ResponseBody>() {
+            @Override
+            public void onError(Throwable error) {
+                mView.hideLoading();
+                mView.showLoadError(getErrorTip(error));
+            }
+
+            @Override
+            public void onSuccess(HttpResponse<ResponseBody> response) {
+                try {
+                    parsePageData(response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        generalRxHttpExecute(forceNetWork -> getGitHubWebPageService().getCollections(forceNetWork),
+                httpObserver, !isReload);
+
+    }
+
+    private void parsePageData(String page) {
+        Observable.just(page)
+                .map(s -> {
+                    ArrayList<Collection> collections = new ArrayList<>();
+                    try {
+                        Document doc = Jsoup.parse(s, AppConfig.GITHUB_BASE_URL);
+                        collections.addAll(getCollections(doc));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return collections;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(results -> {
+                    if(mView == null) return;
+                    if(results.size() != 0){
+                        collections = results;
+                        mView.hideLoading();
+                        mView.showCollections(collections);
+                    } else {
+                        String errorTip = String.format(getString(R.string.github_page_parse_error),
+                                getString(R.string.repo_collections));
+                        mView.showLoadError(errorTip);
+                        mView.hideLoading();
+                    }
+                });
+    }
+
+    private ArrayList<Collection> getCollections(Document doc){
+        ArrayList<Collection> collections = new ArrayList<>();
+        // Collection cards are <article> elements linking to /collections/{id}. Match on
+        // the stable link target rather than brittle CSS class strings, which GitHub churns.
+        for (Element element : doc.getElementsByTag("article")) {
+            Element linkElement = element.select("a[href^=/collections/]").first();
+            if (linkElement == null) continue;
+            String href = linkElement.attr("href");
+            String id = href.substring(href.lastIndexOf("/") + 1);
+            String title = linkElement.text().trim();
+            if (id.isEmpty() || title.isEmpty()) continue;
+            String desc = "";
+            Element h2 = linkElement.parent();
+            Element contentDiv = h2 != null ? h2.parent() : null;
+            if (contentDiv != null) {
+                desc = contentDiv.ownText().trim();
+            }
+            collections.add(new Collection(id, title, desc));
+        }
+        return collections;
+    }
+
+}
