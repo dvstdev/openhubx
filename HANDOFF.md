@@ -8,7 +8,8 @@ Path: `~/playground/openhubx`. Modernization is complete; remaining ideas live i
 - AndroidX, AGP 9.2.0, Gradle 9.7.1, compileSdk 37, targetSdk 34, minSdk 21.
 - Java 21 language level + core library desugaring (`desugar_jdk_libs:2.1.5`).
 - applicationId and namespace: `com.darktile.openhubx`.
-- Version: `2026.09.002` (versionCode 36) in `gradle.properties`.
+- Version: `2026.09.006` (versionCode 37) in `gradle.properties`.
+- Specs (product, architecture, test plan): `vibes/`.
   Scheme `2026.MM.NNN`; each publish bumps NNN by a random 1–10 and versionCode by 1.
 
 ## Build
@@ -52,9 +53,9 @@ cd ~/playground/openhubx
 - Bugly removed.
 
 ## Open TODOs
-- Device test of everything above (no on-device run yet), especially after the RxJava 3 change.
+- Run the e2e tests on a real phone: `tools/e2e/run-e2e.sh` (see `vibes/test-plan.md`). Not run on a device yet.
 - Remove the legacy side drawer (`BaseDrawerActivity`, `activity_main.xml`).
 - About screen ignores font size (`AboutActivity` extends `MaterialAboutActivity`).
 - Confirm GitHub links in `strings.xml`: `author_login_id`, `source_code_url`.
-- Very few unit tests.
+- Add an e2e test for each new bug (regression map in `vibes/test-plan.md`).
 - Backlog: Global Recommendation feed, Gist bookmark sync, Daily/Weekly/Monthly Trending.

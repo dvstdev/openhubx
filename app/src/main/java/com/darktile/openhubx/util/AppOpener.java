@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsIntent;
 import android.widget.Toast;
@@ -57,12 +58,16 @@ public class AppOpener {
             Bitmap backIconBitmap = ViewUtils.getBitmapFromResource(context, R.drawable.ic_arrow_back_title);
             Intent shareIntent = new Intent(context.getApplicationContext(), ShareBroadcastReceiver.class);
             shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            // Android 12+ crashes on a PendingIntent with no mutability flag. MUTABLE is
+            // needed: the browser fills in the page URL that the share/copy receivers read.
+            int piFlags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    ? PendingIntent.FLAG_MUTABLE : 0;
             PendingIntent sharePendingIntent = PendingIntent.getBroadcast(
-                    context.getApplicationContext(), 0, shareIntent, 0);
+                    context.getApplicationContext(), 0, shareIntent, piFlags);
             Intent copyIntent = new Intent(context.getApplicationContext(), CopyBroadcastReceiver.class);
             copyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             PendingIntent copyPendingIntent = PendingIntent.getBroadcast(
-                    context.getApplicationContext(), 0, copyIntent, 0);
+                    context.getApplicationContext(), 1, copyIntent, piFlags);
 
             CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
                     .setToolbarColor(ViewUtils.getPrimaryColor(context))

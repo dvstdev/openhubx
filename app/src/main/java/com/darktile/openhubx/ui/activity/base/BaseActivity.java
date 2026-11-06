@@ -69,7 +69,10 @@ BaseActivity<P extends IBaseContract.Presenter>
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        // No signed-in user: go back to Splash, except in guest browse (no account by design),
+        // where bouncing to Splash would loop Splash -> Main -> Splash forever.
         if((AppData.INSTANCE.getAuthUser() == null || AppData.INSTANCE.getLoggedUser() == null)
+                && !(PrefUtils.isBrowseAnonymous() && AppData.INSTANCE.getAuthUser() == null)
                 && !this.getClass().equals(SplashActivity.class)
                 && !this.getClass().equals(LoginActivity.class)){
             super.onCreate(savedInstanceState);
@@ -113,7 +116,7 @@ BaseActivity<P extends IBaseContract.Presenter>
         //系统由于内存不足而杀死activity，此时保存数据
         DataAutoAccess.saveData(this, outState);
         if(mPresenter != null) mPresenter.onSaveInstanceState(outState);
-        if(curActivity.equals(this)){
+        if(this.equals(curActivity)){
             DataAutoAccess.saveData(AppData.INSTANCE, outState);
         }
     }

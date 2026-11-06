@@ -28,6 +28,8 @@ android {
         versionName VERSION_NAME
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
+        // End-to-end tests in src/androidTest run on a real phone or emulator.
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField "String", "OPENHUB_CLIENT_ID", buildConfigProp('openhub_client_id')
         buildConfigField "String", "OPENHUB_CLIENT_SECRET", buildConfigProp('openhub_client_secret')
@@ -61,7 +63,18 @@ android {
         debug {
             signingConfig signingConfigs.release
         }
+        // End-to-end tests install as a separate app (com.darktile.openhubx.e2e). The tests
+        // sign out and the run uninstalls afterwards, so they must never touch your real app.
+        e2e {
+            initWith debug
+            applicationIdSuffix ".e2e"
+            versionNameSuffix "-e2e"
+            matchingFallbacks = ['debug']
+        }
     }
+    // -Pe2e (tools/e2e/run-e2e.sh) points device tests at the e2e app. Without it, unit
+    // tests keep running on debug (testNormalDebugUnitTest in CI).
+    testBuildType project.hasProperty('e2e') ? 'e2e' : 'debug'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
@@ -113,6 +126,12 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
     testImplementation 'junit:junit:4.13.2'
+
+    // End-to-end (device) tests: drive the real app with UiAutomator.
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.3.0'
 
 //    compile "com.android.support:support-annotations:${ANDROID_SUPPORT_VERSION}"
 
