@@ -8,5 +8,7 @@
     <string name="bookmarks_exported">Bookmarks exported</string>
     <string name="bookmarks_export_empty">No bookmarks to export</string>
     <string name="bookmarks_imported">Imported %d bookmark(s)</string>
+    <string name="bookmarks_imported_skipped">Imported %1$d bookmark(s), skipped %2$d (already there or unreadable)</string>
+    <string name="bookmarks_import_not_backup">This file is not a bookmark backup</string>
     <string name="bookmarks_backup_failed">Bookmark backup failed</string>
 </resources>

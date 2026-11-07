@@ -46,6 +46,8 @@ command line, so it can show up in the process list while the run is going.
 | Switch with one account | — (guard) | `AccountE2eTest.switchAccount_withOneAccount_offersAdd` | token |
 | Notifications: "java.lang.Error · Tap to retry" | Empty HTTP/2 reason + 403 shown as retryable | `AccountE2eTest.notifications_fineGrainedToken_showsHintNoRetry` | fine-grained token |
 | Bookmarks lost on switch | `OWNER_LOGIN_ID` never written or read | `BookmarkPerAccountE2eTest` (2 tests, device database) | — |
+| Import took another account's bookmarks | Import kept the file's bookmark ids, so it overwrote rows on the same phone | `BookmarkPerAccountE2eTest.importOtherAccountsExport_copiesWithoutTakingTheirs` | — |
+| Import failed on files from other phones | Dates are saved as locale text; one bad row failed the whole file | `BookmarkBackupParseTest` (unit) | — |
 
 ## Still manual
 

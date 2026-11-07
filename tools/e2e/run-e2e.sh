@@ -31,5 +31,27 @@ if [[ -n "${1:-}" ]]; then
   args+=("-Pandroid.testInstrumentationRunnerArguments.class=com.darktile.openhubx.e2e.$1")
 fi
 
-./gradlew "${args[@]}"
+status=0
+./gradlew "${args[@]}" || status=$?
+
+# Print each failed test and its first error lines, so the CI log shows why without the report.
+python3 - <<'EOF' || true
+import glob, xml.etree.ElementTree as ET
+files = glob.glob("app/build/outputs/androidTest-results/connected/**/*.xml", recursive=True)
+total = failed = skipped = 0
+for path in files:
+    for case in ET.parse(path).getroot().iter("testcase"):
+        total += 1
+        if case.find("skipped") is not None:
+            skipped += 1
+        for bad in list(case.findall("failure")) + list(case.findall("error")):
+            failed += 1
+            lines = (bad.text or bad.get("message") or "").strip().splitlines()[:6]
+            print(f"\nFAILED {case.get('classname', '').split('.')[-1]}.{case.get('name')}")
+            for line in lines:
+                print("    " + line)
+print(f"\nE2E SUMMARY: {total} tests, {failed} failed, {skipped} skipped")
+EOF
+
 echo "Report: app/build/reports/androidTests/connected/e2e/flavors/normal/index.html"
+exit $status

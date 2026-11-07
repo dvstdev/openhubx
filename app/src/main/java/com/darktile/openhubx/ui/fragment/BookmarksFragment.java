@@ -224,11 +224,16 @@ public class BookmarksFragment extends ListFragment<BookmarkPresenter, Bookmarks
                 pendingExportJson = null;
                 Toast.makeText(getActivity(), R.string.bookmarks_exported, Toast.LENGTH_SHORT).show();
             } else if (requestCode == REQUEST_IMPORT) {
-                int count = BookmarkBackup.importJson(mPresenter.getDaoSession(), readFromUri(uri));
-                Toast.makeText(getActivity(), getString(R.string.bookmarks_imported, count),
-                        Toast.LENGTH_SHORT).show();
+                BookmarkBackup.ImportResult result =
+                        BookmarkBackup.importJson(mPresenter.getDaoSession(), readFromUri(uri));
+                String msg = result.skipped == 0
+                        ? getString(R.string.bookmarks_imported, result.added)
+                        : getString(R.string.bookmarks_imported_skipped, result.added, result.skipped);
+                Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
                 mPresenter.loadBookmarks(1);
             }
+        } catch (IllegalArgumentException e) {
+            Toast.makeText(getActivity(), R.string.bookmarks_import_not_backup, Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(getActivity(), R.string.bookmarks_backup_failed, Toast.LENGTH_SHORT).show();
         }
